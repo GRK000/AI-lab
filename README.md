@@ -30,23 +30,44 @@ Hasta ahora he implementado:
 - Una clase `NeuralNetwork` con entrenamiento por mini-batches y backpropagation.
 - Una clase `Neuron` como wrapper de una sola neurona diferenciable para problemas simples.
 - Demos sencillas para clasificacion binaria y resolucion de XOR.
+- Una carpeta `tests/` con validacion automatizada de activaciones, capas, perceptron, neurona y red.
+- Utilidades de visualizacion con `matplotlib` para historicos de entrenamiento y comparacion entre modelos.
+- Una carpeta `comparisons/` para contrastar el comportamiento del laboratorio con frameworks profesionales.
 
 ## Estructura actual
 
 ```text
 AI - lab/
 |-- README.md
+|-- artifacts/
+|   `-- plots/
+|-- comparisons/
+|   |-- README.md
+|   |-- common.py
+|   |-- sklearn_compare.py
+|   `-- pytorch_compare.py
+|-- tests/
+|   |-- _bootstrap.py
+|   |-- test_activations.py
+|   |-- test_layers.py
+|   |-- test_network.py
+|   |-- test_neuron.py
+|   |-- test_perceptron.py
+|   `-- test_visualization.py
 |-- from-scratch/
 |   |-- perceptron.py
 |   |-- perceptron-binario.py
 |   |-- NeuralDemo.py
-|   `-- neural_core/
+|   |-- neural_core/
+|   |   |-- __init__.py
+|   |   |-- common.py
+|   |   |-- activations.py
+|   |   |-- layers.py
+|   |   |-- network.py
+|   |   `-- neuron.py
+|   `-- visualization/
 |       |-- __init__.py
-|       |-- common.py
-|       |-- activations.py
-|       |-- layers.py
-|       |-- network.py
-|       `-- neuron.py
+|       `-- training_plots.py
 ```
 
 ## Que hace cada parte
@@ -100,9 +121,43 @@ Aqui encapsulo una sola neurona diferenciable como un caso particular de la red 
 
 En otras palabras: la neurona simple reutiliza la infraestructura correcta, en lugar de convertirse en una excepcion mal mantenida.
 
-### `from-scratch/NeuralDemo.py` y `from-scratch/perceptron.py`
+### `from-scratch/NeuralDemo.py` y `from-scratch/perceptron-binario.py`
 
 Estos archivos actuan como puntos de entrada y ejemplos de uso. Para mi son importantes porque un repositorio orientado a portfolio no debe obligar a quien lo visita a recorrer toda la base de codigo para entender si algo funciona o no.
+
+### `from-scratch/visualization/training_plots.py`
+
+Aqui concentro la generacion de graficos del proyecto. Uso `matplotlib` porque mi objetivo no es reinventar una libreria de visualizacion, sino analizar entrenamiento y producir artefactos utiles para documentar el comportamiento de los modelos.
+
+Ahora mismo estas utilidades sirven para:
+
+- pintar historicos de entrenamiento
+- comparar perceptron y neurona sobre un problema binario en 2D
+- guardar las figuras automaticamente en `artifacts/plots`
+
+### `tests/`
+
+La carpeta de tests existe para que el laboratorio deje de depender solo de demos manuales. Quiero poder cambiar activaciones, inicializaciones o detalles del entrenamiento con la tranquilidad de que una suite automatizada detectara regresiones.
+
+La suite valida:
+
+- funciones de activacion y sus derivadas
+- construccion y backward de capas densas
+- perceptron clasico
+- neurona diferenciable
+- red neuronal en problemas de regresion, binarios y multiclase
+- generacion de figuras
+
+### `comparisons/`
+
+Esta carpeta separa la comparacion contra frameworks profesionales del nucleo hecho desde cero. Para mi es importante porque demuestra dos cosas: que entiendo los fundamentos y que se contrastarlos contra herramientas industriales.
+
+He dejado scripts base para:
+
+- `scikit-learn`
+- `PyTorch`
+
+Si esas dependencias no estan instaladas, los scripts terminan con un mensaje claro y no afectan al resto del repositorio.
 
 ## Que demuestra este proyecto a nivel tecnico
 
@@ -126,6 +181,9 @@ Desde la raiz del repositorio:
 python from-scratch/perceptron.py
 python from-scratch/perceptron-binario.py
 python from-scratch/NeuralDemo.py
+python -m unittest discover -s tests -v
+python comparisons/sklearn_compare.py
+python comparisons/pytorch_compare.py
 ```
 
 Los scripts actuales muestran ejemplos pequenos para verificar:
@@ -133,6 +191,8 @@ Los scripts actuales muestran ejemplos pequenos para verificar:
 - clasificacion binaria simple
 - uso de una neurona diferenciable
 - resolucion de XOR mediante una red densa
+- generacion automatica de graficos en `artifacts/plots`
+- validacion automatizada del nucleo
 
 ## Filosofia del repositorio
 
@@ -151,22 +211,21 @@ No intento esconder lo que todavia falta. Un proyecto serio mejora mucho cuando 
 
 Ahora mismo faltan, o estan verdes, varias piezas importantes:
 
-- tests automatizados
-- benchmarks basicos
+- benchmarks mas amplios y comparativas mas exigentes
 - tipado aun mas estricto en algunos puntos
 - documentacion de ejemplos mas amplia
 - separacion formal entre codigo de libreria y scripts de demo
 - optimizadores adicionales como SGD con momentum o Adam
 - regularizacion mas completa
 - guardado y carga de modelos
-- visualizacion del entrenamiento
+- visualizaciones mas ricas, incluyendo fronteras multiclase y curvas comparativas adicionales
 - datasets algo mas realistas
 
 ## Que hare para mejorar el proyecto
 
 Si quiero que este repositorio suba de nivel y no se quede en un "experimento simpatico", estos son los siguientes pasos naturales:
 
-### 1. Anadir tests de verdad
+### 1. Profundizar la estrategia de tests
 
 Quiero validar no solo que los ejemplos funcionan, sino que:
 
@@ -174,6 +233,7 @@ Quiero validar no solo que los ejemplos funcionan, sino que:
 - las perdidas bajan donde deben
 - los gradientes responden como espero
 - la API falla bien cuando recibe entradas invalidas
+- las comparativas externas mantienen una referencia razonable
 
 ### 2. Separar demos, libreria y experimentos
 
@@ -185,7 +245,7 @@ Mi siguiente refactor razonable es dejar tres zonas claras:
 
 Eso haria que el repositorio respire mejor y sea mas facil de evaluar.
 
-### 3. Anadir experimentos comparables
+### 3. Ampliar experimentos y comparativas
 
 No basta con decir "funciona". Quiero incluir comparativas pequenas pero honestas:
 
@@ -193,6 +253,7 @@ No basta con decir "funciona". Quiero incluir comparativas pequenas pero honesta
 - una capa vs dos capas
 - distintas activaciones
 - distintos tamanos de capa oculta
+- comparacion contra `scikit-learn` y `PyTorch` con datasets mas representativos
 
 Eso convertiria el repo en una herramienta de aprendizaje y tambien en una demostracion de criterio experimental.
 
@@ -239,11 +300,12 @@ Eso, para mi, es mucho mas interesante que tener una demo vistosa montada depris
 
 Mi siguiente iteracion probable sera una combinacion de estas tareas:
 
-- anadir tests
-- crear una carpeta formal de ejemplos
+- ampliar tests a casos numericos mas exigentes
+- enriquecer la carpeta de comparaciones externas
 - documentar mejor la API publica
 - incorporar al menos un caso de regresion y uno multiclase como demos oficiales
 - limpiar nombres de archivos para que la estructura sea aun mas consistente
+- generar imagenes reutilizables para el README y el perfil de GitHub
 
 ## Conclusión
 
