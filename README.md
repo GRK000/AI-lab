@@ -100,13 +100,13 @@ Aqui encapsulo una sola neurona diferenciable como un caso particular de la red 
 
 En otras palabras: la neurona simple reutiliza la infraestructura correcta, en lugar de convertirse en una excepcion mal mantenida.
 
-### `from-scratch/NeuralDemo.py` y `from-scratch/perceptron-binario.py`
+### `from-scratch/NeuralDemo.py` y `from-scratch/perceptron.py`
 
 Estos archivos actuan como puntos de entrada y ejemplos de uso. Para mi son importantes porque un repositorio orientado a portfolio no debe obligar a quien lo visita a recorrer toda la base de codigo para entender si algo funciona o no.
 
 ## Que demuestra este proyecto a nivel tecnico
 
-Este repositorio esta pensado para ensenar mas que resultados. Quiero que quien lo vea entienda como pienso al programar.
+Este repositorio esta pensado para enseñar más que resultados. Quiero que quien lo vea entienda como pienso al programar.
 
 Las decisiones que ya refleja el codigo son:
 
@@ -143,7 +143,7 @@ Estoy construyendo este laboratorio con una filosofia simple:
 - despues optimizar
 - despues escalar
 
-No quiero saltarme capas de comprension. Si en el futuro uso PyTorch, quiero hacerlo con criterio, sabiendo exactamente que resuelve el framework y que compromisos estoy aceptando.
+No quiero saltarme capas de comprension. Cuando uso PyTorch, quiero hacerlo con criterio, sabiendo exactamente que resuelve el framework y que compromisos estoy aceptando.
 
 ## Limitaciones actuales
 
@@ -162,7 +162,7 @@ Ahora mismo faltan, o estan verdes, varias piezas importantes:
 - visualizacion del entrenamiento
 - datasets algo mas realistas
 
-## Que hare para convertirlo en un proyecto de diez
+## Que hare para mejorar el proyecto
 
 Si quiero que este repositorio suba de nivel y no se quede en un "experimento simpatico", estos son los siguientes pasos naturales:
 
@@ -174,8 +174,6 @@ Quiero validar no solo que los ejemplos funcionan, sino que:
 - las perdidas bajan donde deben
 - los gradientes responden como espero
 - la API falla bien cuando recibe entradas invalidas
-
-Sin tests, un proyecto tecnico pierde mucho valor a ojos de cualquier equipo serio.
 
 ### 2. Separar demos, libreria y experimentos
 
@@ -221,7 +219,7 @@ XOR esta bien como prueba conceptual, pero no basta. El proyecto sube mucho cuan
 
 ### 6. Medir y perfilar
 
-Si de verdad quiero que esto transmita nivel, necesito ensenar que tambien se mirar rendimiento. NumPy ya da una buena base, pero quiero medir:
+Si de verdad quiero que esto transmita nivel, necesito enseñar que tambien se mirar rendimiento. NumPy ya da una buena base, pero quiero medir:
 
 - coste por epoca
 - impacto del tamano de batch
@@ -236,17 +234,6 @@ soy capaz de empezar por fundamentos, detectar cuando un script ya no escala, re
 
 Eso, para mi, es mucho mas interesante que tener una demo vistosa montada deprisa.
 
-## Que deberia ver aqui un reclutador
-
-Si una persona tecnica llega a este repositorio, me gustaria que percibiera lo siguiente:
-
-- curiosidad real por los fundamentos
-- capacidad de construir sin depender de capas de abstraccion externas
-- criterio de diseno de software, no solo de scripting
-- honestidad sobre el estado actual del proyecto
-- una direccion de crecimiento clara
-
-No estoy intentando aparentar que esto es una libreria acabada. Estoy intentando demostrar que se convertir teoria en software y software en un proyecto cada vez mas serio.
 
 ## Proximos pasos inmediatos
 
@@ -258,8 +245,6 @@ Mi siguiente iteracion probable sera una combinacion de estas tareas:
 - incorporar al menos un caso de regresion y uno multiclase como demos oficiales
 - limpiar nombres de archivos para que la estructura sea aun mas consistente
 
-## Cierre
+## Conclusión
 
 Estoy construyendo este proyecto como laboratorio, como portfolio y como prueba de disciplina tecnica. Prefiero que cada parte este entendida y justificada antes de seguir anadiendo complejidad.
-
-Si vuelves a este repositorio dentro de unas iteraciones, mi intencion es que encuentres no solo mas codigo, sino mejor criterio, mejor documentacion y una arquitectura cada vez mas madura.
