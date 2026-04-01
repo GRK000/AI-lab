@@ -1,3 +1,11 @@
-from .training_plots import plot_binary_model_comparison, plot_training_history
+from .training_plots import (
+    plot_binary_model_comparison,
+    plot_optimizer_histories,
+    plot_training_history,
+)
 
-__all__ = ["plot_binary_model_comparison", "plot_training_history"]
+__all__ = [
+    "plot_binary_model_comparison",
+    "plot_optimizer_histories",
+    "plot_training_history",
+]

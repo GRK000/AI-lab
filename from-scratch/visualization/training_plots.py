@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any
 
 import matplotlib
@@ -69,6 +70,42 @@ def plot_training_history(
     axis.set_title(title)
     axis.set_xlabel("Epoch")
     axis.set_ylabel("Value")
+    axis.grid(alpha=0.25)
+    axis.legend()
+
+    _save_figure(fig, save_path)
+    return fig
+
+
+def plot_optimizer_histories(
+    histories: Mapping[str, list[Any]],
+    *,
+    field: str = "loss",
+    title: str = "Optimizer comparison",
+    save_path: str | Path | None = None,
+) -> plt.Figure:
+    """
+    Compare one tracked field across several training histories.
+    """
+
+    if not histories:
+        raise ValueError("histories cannot be empty.")
+
+    fig, axis = plt.subplots(figsize=(10, 5))
+    plotted_anything = False
+
+    for label, history in histories.items():
+        epochs, values = _history_series(history, field)
+        if values:
+            axis.plot(epochs, values, linewidth=2, label=label)
+            plotted_anything = True
+
+    if not plotted_anything:
+        raise ValueError(f"No plottable values were found for field {field!r}.")
+
+    axis.set_title(title)
+    axis.set_xlabel("Epoch")
+    axis.set_ylabel(field.replace("_", " ").title())
     axis.grid(alpha=0.25)
     axis.legend()
 

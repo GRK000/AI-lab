@@ -6,8 +6,17 @@ from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from .common import EPSILON, FloatArray, LossName, ProblemType, TrainingSnapshot
-from .layers import DenseLayer
+from .common import (
+    EPSILON,
+    FloatArray,
+    Layer,
+    LossName,
+    OptimizerName,
+    ProblemType,
+    TrainingSnapshot,
+)
+from .layers import DenseLayer, DropoutLayer
+from .optimizers import BaseOptimizer, make_optimizer
 
 
 class NeuralNetwork:
@@ -22,9 +31,11 @@ class NeuralNetwork:
 
     def __init__(
         self,
-        layers: Sequence[DenseLayer],
+        layers: Sequence[Layer],
         problem_type: ProblemType,
         learning_rate: float = 0.05,
+        optimizer: OptimizerName | BaseOptimizer = "sgd",
+        optimizer_kwargs: dict[str, Any] | None = None,
         max_epochs: int = 1000,
         batch_size: int | None = 32,
         shuffle: bool = True,
@@ -47,6 +58,8 @@ class NeuralNetwork:
         self.layers = list(layers)
         self.problem_type = problem_type
         self.learning_rate = float(learning_rate)
+        self.optimizer = optimizer
+        self.optimizer_kwargs = dict(optimizer_kwargs or {})
         self.max_epochs = int(max_epochs)
         self.batch_size = batch_size
         self.shuffle = bool(shuffle)
@@ -58,11 +71,17 @@ class NeuralNetwork:
         self.metric_name = "mae" if problem_type == "regression" else "accuracy"
 
         self.n_features_in_: int | None = None
+        self.n_outputs_: int | None = None
         self.classes_: NDArray[Any] | None = None
         self.history_: list[TrainingSnapshot] = []
         self.epochs_trained_: int = 0
 
         self._rng = np.random.default_rng(random_state)
+        self._optimizer = make_optimizer(
+            optimizer,
+            learning_rate=self.learning_rate,
+            optimizer_kwargs=self.optimizer_kwargs,
+        )
         self._validate_architecture()
 
     def fit(self, X: ArrayLike, y: ArrayLike) -> "NeuralNetwork":
@@ -76,6 +95,7 @@ class NeuralNetwork:
 
         self.history_.clear()
         self.epochs_trained_ = 0
+        self._optimizer.reset_state()
 
         n_samples = X_array.shape[0]
         effective_batch_size = n_samples if self.batch_size is None else min(
@@ -171,8 +191,13 @@ class NeuralNetwork:
 
     def _validate_architecture(self) -> None:
         for layer in self.layers[:-1]:
+            if isinstance(layer, DropoutLayer):
+                continue
             if layer.activation == "softmax":
                 raise ValueError("softmax is only supported in the output layer.")
+
+        if isinstance(self.layers[-1], DropoutLayer):
+            raise ValueError("DropoutLayer cannot be used as the output layer.")
 
     def _default_loss(self, problem_type: ProblemType) -> LossName:
         if problem_type == "regression":
@@ -303,11 +328,15 @@ class NeuralNetwork:
         current_dim = input_dim
 
         for layer in self.layers:
-            layer.build(current_dim, self._rng, self.dtype)
-            current_dim = layer.units
+            current_dim = layer.build(current_dim, self._rng, self.dtype)
+
+        self.n_outputs_ = current_dim
 
     def _validate_output_configuration(self, y: FloatArray) -> None:
-        output_units = self.layers[-1].units
+        if self.n_outputs_ is None:
+            raise RuntimeError("The network output dimension is not initialized yet.")
+
+        output_units = self.n_outputs_
         target_units = y.shape[1]
 
         if output_units != target_units:
@@ -315,7 +344,11 @@ class NeuralNetwork:
                 f"Output layer has {output_units} units but the targets require {target_units}."
             )
 
-        output_activation = self.layers[-1].activation
+        output_layer = self.layers[-1]
+        if not isinstance(output_layer, DenseLayer):
+            raise ValueError("The output layer must be a DenseLayer.")
+
+        output_activation = output_layer.activation
 
         if self.loss_name == "binary_crossentropy" and output_activation != "sigmoid":
             raise ValueError("binary_crossentropy requires a sigmoid output layer.")
@@ -333,34 +366,33 @@ class NeuralNetwork:
         return output
 
     def _train_on_batch(self, y_true: FloatArray, y_pred: FloatArray) -> None:
-        output_delta = self._output_delta(y_true, y_pred)
-        delta = output_delta
+        delta, is_preactivation_delta = self._output_delta(y_true, y_pred)
+        self._optimizer.begin_step()
 
         for index in range(len(self.layers) - 1, -1, -1):
-            current_layer = self.layers[index]
-            grad_input = current_layer.backward(
-                delta,
-                learning_rate=self.learning_rate,
-                l2_lambda=self.l2_lambda,
+            apply_activation_derivative = not (
+                index == len(self.layers) - 1 and is_preactivation_delta
             )
 
-            if index > 0:
-                previous_layer = self.layers[index - 1]
-                delta = grad_input * previous_layer.activation_derivative()
+            delta = self.layers[index].backward(
+                delta,
+                optimizer=self._optimizer,
+                l2_lambda=self.l2_lambda,
+                apply_activation_derivative=apply_activation_derivative,
+            )
 
-    def _output_delta(self, y_true: FloatArray, y_pred: FloatArray) -> FloatArray:
-        last_layer = self.layers[-1]
+    def _output_delta(self, y_true: FloatArray, y_pred: FloatArray) -> tuple[FloatArray, bool]:
         batch_size = y_true.shape[0]
 
         if self.loss_name == "binary_crossentropy":
-            return (y_pred - y_true) / batch_size
+            return (y_pred - y_true) / batch_size, True
 
         if self.loss_name == "categorical_crossentropy":
-            return (y_pred - y_true) / batch_size
+            return (y_pred - y_true) / batch_size, True
 
         diff = y_pred - y_true
         scale = 2.0 / (y_true.shape[0] * y_true.shape[1])
-        return scale * diff * last_layer.activation_derivative()
+        return scale * diff, False
 
     def _loss(self, y_pred: FloatArray, y_true: FloatArray) -> float:
         if self.loss_name == "mse":

@@ -8,7 +8,11 @@ import numpy as np
 from _bootstrap import ROOT, FROM_SCRATCH  # noqa: F401
 from neural_core import Neuron
 from perceptron import Perceptron
-from visualization import plot_binary_model_comparison, plot_training_history
+from visualization import (
+    plot_binary_model_comparison,
+    plot_optimizer_histories,
+    plot_training_history,
+)
 
 
 class VisualizationTests(unittest.TestCase):
@@ -62,6 +66,26 @@ class VisualizationTests(unittest.TestCase):
             neuron,
             save_path=output,
         )
+        self.assertTrue(output.exists())
+        fig.clf()
+
+    def test_optimizer_comparison_plot_is_saved(self) -> None:
+        histories: dict[str, list[object]] = {}
+
+        for optimizer_name in ("sgd", "adam"):
+            model = Neuron(
+                problem_type="binary",
+                learning_rate=0.2 if optimizer_name == "sgd" else 0.05,
+                optimizer=optimizer_name,
+                max_epochs=100,
+                batch_size=4,
+                random_state=7,
+            )
+            model.fit(self.X, self.y)
+            histories[optimizer_name] = list(model.history_)
+
+        output = self.output_dir / "optimizer_comparison.png"
+        fig = plot_optimizer_histories(histories, save_path=output)
         self.assertTrue(output.exists())
         fig.clf()
 

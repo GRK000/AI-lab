@@ -6,7 +6,7 @@ from typing import Any
 import numpy as np
 
 from .activations import ACTIVATIONS
-from .common import ActivationName, FloatArray
+from .common import ActivationName, FloatArray, Optimizer
 
 
 @dataclass(slots=True)
@@ -46,7 +46,7 @@ class DenseLayer:
             raise RuntimeError("Layer parameters are not initialized yet.")
         return self.bias_
 
-    def build(self, input_dim: int, rng: np.random.Generator, dtype: Any) -> None:
+    def build(self, input_dim: int, rng: np.random.Generator, dtype: Any) -> int:
         if input_dim <= 0:
             raise ValueError("input_dim must be > 0.")
 
@@ -64,6 +64,7 @@ class DenseLayer:
             size=(input_dim, self.units),
         ).astype(dtype, copy=False)
         self.bias_ = np.zeros((1, self.units), dtype=dtype)
+        return self.units
 
     def forward(self, inputs: FloatArray, training: bool = False) -> FloatArray:
         linear_output = inputs @ self.weights + self.bias
@@ -89,12 +90,18 @@ class DenseLayer:
 
     def backward(
         self,
-        delta: FloatArray,
-        learning_rate: float,
+        grad_output: FloatArray,
+        learning_rate: float | None = None,
+        optimizer: Optimizer | None = None,
         l2_lambda: float = 0.0,
+        apply_activation_derivative: bool = True,
     ) -> FloatArray:
         if self._last_input is None:
             raise RuntimeError("No forward pass cached for this layer.")
+
+        delta = grad_output
+        if apply_activation_derivative:
+            delta = grad_output * self.activation_derivative()
 
         grad_input = delta @ self.weights.T
         grad_weights = self._last_input.T @ delta
@@ -103,13 +110,87 @@ class DenseLayer:
         if l2_lambda > 0.0:
             grad_weights += l2_lambda * self.weights
 
-        self.weights_ = self.weights - learning_rate * grad_weights.astype(
-            self.weights.dtype,
-            copy=False,
-        )
-        self.bias_ = self.bias - learning_rate * grad_bias.astype(
-            self.bias.dtype,
-            copy=False,
-        )
+        cast_grad_weights = grad_weights.astype(self.weights.dtype, copy=False)
+        cast_grad_bias = grad_bias.astype(self.bias.dtype, copy=False)
+
+        if optimizer is not None:
+            self.weights_ = optimizer.update(
+                f"{id(self)}.weights",
+                self.weights,
+                cast_grad_weights,
+            )
+            self.bias_ = optimizer.update(
+                f"{id(self)}.bias",
+                self.bias,
+                cast_grad_bias,
+            )
+        else:
+            if learning_rate is None:
+                raise ValueError(
+                    "learning_rate is required when no optimizer instance is provided."
+                )
+            self.weights_ = self.weights - learning_rate * cast_grad_weights
+            self.bias_ = self.bias - learning_rate * cast_grad_bias
 
         return grad_input.astype(self.weights.dtype, copy=False)
+
+
+@dataclass(slots=True)
+class DropoutLayer:
+    """
+    Inverted dropout layer.
+
+    During training it randomly drops activations and rescales survivors so
+    inference can run as a pure identity transform.
+    """
+
+    rate: float
+    input_dim_: int | None = field(init=False, default=None)
+    dtype_: Any | None = field(init=False, default=None)
+    _rng: np.random.Generator | None = field(init=False, default=None)
+    _mask: FloatArray | None = field(init=False, default=None)
+
+    def __post_init__(self) -> None:
+        if not 0.0 <= self.rate < 1.0:
+            raise ValueError("rate must be in [0, 1).")
+
+    def build(self, input_dim: int, rng: np.random.Generator, dtype: Any) -> int:
+        if input_dim <= 0:
+            raise ValueError("input_dim must be > 0.")
+
+        self.input_dim_ = int(input_dim)
+        self.dtype_ = dtype
+        self._rng = rng
+        return input_dim
+
+    def forward(self, inputs: FloatArray, training: bool = False) -> FloatArray:
+        if self.input_dim_ is None or self._rng is None:
+            raise RuntimeError("Layer parameters are not initialized yet.")
+
+        if inputs.shape[1] != self.input_dim_:
+            raise ValueError(f"Expected {self.input_dim_} features, got {inputs.shape[1]}.")
+
+        if not training or self.rate == 0.0:
+            self._mask = None
+            return inputs
+
+        keep_probability = 1.0 - self.rate
+        self._mask = (
+            (self._rng.random(inputs.shape) < keep_probability).astype(inputs.dtype)
+            / keep_probability
+        )
+        return (inputs * self._mask).astype(inputs.dtype, copy=False)
+
+    def backward(
+        self,
+        grad_output: FloatArray,
+        learning_rate: float | None = None,
+        optimizer: Optimizer | None = None,
+        l2_lambda: float = 0.0,
+        apply_activation_derivative: bool = True,
+    ) -> FloatArray:
+        del learning_rate, optimizer, l2_lambda, apply_activation_derivative
+
+        if self._mask is None:
+            return grad_output
+        return (grad_output * self._mask).astype(grad_output.dtype, copy=False)

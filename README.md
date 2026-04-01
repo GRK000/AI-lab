@@ -10,7 +10,7 @@ No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea
 - Stack: Python, NumPy, matplotlib, unittest
 - Enfoque: machine learning y redes neuronales desde cero
 - Objetivo: aprender fundamentos y construir una base de software mantenible
-- Cobertura actual: perceptron, neurona diferenciable, capas densas, red neuronal, visualizacion y comparaciones externas
+- Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, visualizacion y comparaciones externas
 
 ## Capacidades actuales
 
@@ -19,10 +19,12 @@ No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea
 | Perceptron binario | Implementado y probado |
 | Neurona diferenciable | Implementada y probada |
 | Capas densas | Implementadas con forward y backward |
-| Red neuronal multicapa | Implementada con mini-batches y backpropagation |
+| Dropout | Implementado como capa reutilizable |
+| Red neuronal multicapa | Implementada con mini-batches, backpropagation y optimizadores configurables |
 | Activaciones | `identity`, `sigmoid`, `tanh`, `relu`, `softmax` |
+| Optimizadores | `sgd`, `momentum`, `rmsprop`, `adadelta`, `adam`, `adamw`, `adamax` |
 | Problemas soportados | Regresion, clasificacion binaria y multiclase |
-| Visualizacion | Historicos de entrenamiento y comparacion 2D |
+| Visualizacion | Historicos de entrenamiento, comparacion 2D y comparacion entre optimizadores |
 | Tests | Suite automatizada activa |
 | Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
 
@@ -46,11 +48,13 @@ Ahora mismo el repositorio ya tiene una base funcional y testeada:
 - Un nucleo modular en `from-scratch/neural_core` para modelos diferenciables.
 - Activaciones desacopladas con soporte para `identity`, `sigmoid`, `tanh`, `relu` y `softmax`.
 - Una clase `DenseLayer` para capas totalmente conectadas con forward y backward vectorizados.
-- Una clase `NeuralNetwork` con mini-batches, backpropagation, perdidas para regresion, binaria y multiclase, y metodos `forward`, `predict`, `predict_proba` y `score`.
+- Una clase `DropoutLayer` para regularizacion en capas ocultas.
+- Una clase `NeuralNetwork` con mini-batches, backpropagation, perdidas para regresion, binaria y multiclase, optimizadores configurables, y metodos `forward`, `predict`, `predict_proba` y `score`.
 - Una clase `Neuron` como caso particular de una sola neurona diferenciable, reutilizando la infraestructura general.
-- Un script de demo con comparacion `Perceptron` vs `Neuron` y una red para XOR.
-- Utilidades de visualizacion para historicos de entrenamiento y comparaciones en 2D.
-- Una suite de tests automatizados para activaciones, capas, perceptron, neurona, red y visualizacion.
+- Un modulo de optimizadores con soporte para `SGD`, `Momentum`, `RMSprop`, `Adadelta`, `Adam`, `AdamW` y `Adamax`.
+- Un script de demo con comparacion `Perceptron` vs `Neuron`, comparativa de optimizadores, una red multiclase con dropout y una red para XOR.
+- Utilidades de visualizacion para historicos de entrenamiento, comparaciones en 2D y comparativas entre optimizadores.
+- Una suite de tests automatizados para activaciones, capas, dropout, perceptron, neurona, red y visualizacion.
 - Una carpeta `comparisons/` para contrastar el comportamiento del laboratorio con `scikit-learn` y `PyTorch`.
 
 En el estado actual, la suite automatica del proyecto pasa completa con:
@@ -71,6 +75,8 @@ python -m unittest discover -s tests -v
 Con eso ya se puede ver:
 
 - una comparacion entre perceptron y neurona
+- una comparativa de optimizadores sobre un problema de regresion
+- una red multiclase con `DropoutLayer`
 - una red densa resolviendo XOR
 - generacion automatica de graficos
 - validacion automatizada del nucleo
@@ -96,7 +102,9 @@ AI - lab/
 |-- .gitignore
 |-- artifacts/
 |   `-- plots/
+|       |-- multiclass_dropout_history.png
 |       |-- neuron_training_history.png
+|       |-- optimizer_regression_comparison.png
 |       |-- perceptron_training_history.png
 |       |-- perceptron_vs_neuron.png
 |       `-- xor_network_history.png
@@ -114,7 +122,8 @@ AI - lab/
 |   |   |-- common.py
 |   |   |-- layers.py
 |   |   |-- network.py
-|   |   `-- neuron.py
+|   |   |-- neuron.py
+|   |   `-- optimizers.py
 |   `-- visualization/
 |       |-- __init__.py
 |       `-- training_plots.py
@@ -142,9 +151,27 @@ Aqui centralizo las funciones de activacion y sus derivadas. Esta separacion evi
 
 ### `from-scratch/neural_core/layers.py`
 
-Aqui vive `DenseLayer`, que representa una capa totalmente conectada. Internamente almacena pesos, sesgos y caches del forward para poder hacer backpropagation de forma limpia.
+Aqui viven `DenseLayer` y `DropoutLayer`.
+
+`DenseLayer` representa una capa totalmente conectada y almacena pesos, sesgos y caches del forward para poder hacer backpropagation de forma limpia.
+
+`DropoutLayer` introduce regularizacion como una capa no parametrica reutilizable, sin forzar hacks dentro de `NeuralNetwork`.
 
 La implementacion esta vectorizada, de modo que el salto desde una intuicion de neuronas individuales a una arquitectura matricial real sea natural.
+
+### `from-scratch/neural_core/optimizers.py`
+
+Aqui concentro la logica de actualizacion de parametros. Esta separacion evita mezclar reglas de optimizacion con la definicion de capas.
+
+Ahora mismo el proyecto soporta:
+
+- `SGD`
+- `Momentum`
+- `RMSprop`
+- `Adadelta`
+- `Adam`
+- `AdamW`
+- `Adamax`
 
 ### `from-scratch/neural_core/network.py`
 
@@ -160,6 +187,8 @@ La clase `NeuralNetwork` ya resuelve:
 - validacion y preparacion de `X` e `y`
 - forward, prediccion y scoring
 - backpropagation sobre varias capas
+- capas parametricas y no parametricas
+- optimizadores configurables sin romper la API principal
 
 La API ya esta preparada para crecer hacia optimizadores, regularizacion adicional, persistencia y mejores experimentos sin tener que rehacer el nucleo.
 
@@ -172,6 +201,8 @@ Aqui encapsulo una sola neurona diferenciable como caso particular de la red gen
 Este archivo es el punto de entrada principal para demos manuales del proyecto. Actualmente incluye:
 
 - una comparacion entre `Perceptron` y `Neuron` sobre un problema binario sencillo
+- una comparativa entre varios optimizadores sobre una regresion lineal
+- una red multiclase con `DropoutLayer`
 - una red neuronal densa para resolver XOR
 - guardado automatico de graficos en `artifacts/plots`
 
@@ -183,6 +214,7 @@ Ahora mismo las utilidades permiten:
 
 - pintar historicos de entrenamiento a partir de distintos tipos de snapshot
 - comparar perceptron y neurona sobre un problema binario en 2D
+- comparar curvas de entrenamiento entre varios optimizadores
 - guardar figuras automaticamente en `artifacts/plots`
 
 ### `tests/`
@@ -191,9 +223,12 @@ La carpeta de tests existe para que el laboratorio no dependa solo de demos manu
 
 - funciones de activacion y sus derivadas
 - construccion, forward y backward de capas densas
+- contrato de `DropoutLayer`
+- una comprobacion numerica del backward en `DenseLayer`
 - perceptron clasico
 - neurona diferenciable
 - red neuronal en problemas de regresion, binarios y multiclase
+- soporte real de varios optimizadores
 - generacion de figuras
 
 ### `comparisons/`
@@ -235,6 +270,8 @@ Los scripts actuales permiten verificar:
 
 - clasificacion binaria simple con perceptron
 - comparacion entre perceptron y neurona diferenciable
+- comparacion entre optimizadores sobre regresion
+- uso de `DropoutLayer` en una red multiclase
 - resolucion de XOR mediante una red densa
 - generacion automatica de graficos en `artifacts/plots`
 - validacion automatizada del nucleo
@@ -246,6 +283,8 @@ El proyecto ya genera figuras reutilizables en `artifacts/plots`, utiles tanto p
 - `perceptron_vs_neuron.png`
 - `perceptron_training_history.png`
 - `neuron_training_history.png`
+- `optimizer_regression_comparison.png`
+- `multiclass_dropout_history.png`
 - `xor_network_history.png`
 
 Esto ayuda a que el repositorio no solo diga que el entrenamiento funciona, sino que tambien lo muestre.
@@ -265,7 +304,7 @@ No quiero saltarme capas de comprension. Cuando uso PyTorch, quiero hacerlo con 
 
 No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, varias piezas importantes:
 
-- optimizadores adicionales como momentum o Adam
+- callbacks de entrenamiento mas completos
 - regularizacion mas completa
 - guardado y carga de modelos
 - una separacion aun mas formal entre libreria, demos y experimentos
@@ -280,13 +319,14 @@ No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, va
 - [x] Implementar una neurona diferenciable reutilizando infraestructura comun
 - [x] Implementar capas densas con forward y backward
 - [x] Implementar una red neuronal multicapa con mini-batches
+- [x] Anadir optimizadores configurables al nucleo
+- [x] Introducir `DropoutLayer` como capa reutilizable
 - [x] Anadir visualizacion de entrenamiento
 - [x] Anadir tests automatizados del nucleo
 - [x] Preparar comparaciones base con frameworks externos
-- [ ] Anadir optimizadores como momentum o Adam
 - [ ] Incorporar persistencia de modelos
-- [ ] Introducir nuevas capas o abstracciones de capa
-- [ ] Anadir demos oficiales de regresion y multiclase
+- [ ] Introducir nuevas capas o abstracciones de capa adicionales
+- [ ] Anadir demos oficiales adicionales de regresion y multiclase
 - [ ] Mejorar comparativas y benchmarks
 - [ ] Refinar la separacion entre libreria, demos y experimentos
 
@@ -298,10 +338,10 @@ La evolucion natural del proyecto no es anadir clases sin criterio, sino ampliar
 
 Lo mas logico es seguir ampliando las clases que ya sostienen el proyecto:
 
-- optimizadores configurables
 - regularizacion adicional
 - validacion durante entrenamiento
 - early stopping
+- callbacks simples
 - persistencia basica del modelo
 
 ### 2. Formalizar mejor la API
@@ -312,8 +352,8 @@ Antes de multiplicar tipos de modelo, conviene consolidar mejor la API publica y
 
 Cuando el nucleo este mas firme, el siguiente salto razonable es anadir nuevas capas o variantes, por ejemplo:
 
-- capas con dropout
 - una interfaz base mas explicita para capas
+- capas adicionales de regularizacion o normalizacion
 - bloques mas reutilizables para arquitecturas futuras
 
 ### 4. Subir el nivel experimental
@@ -340,7 +380,7 @@ Si quiero subir el nivel del repositorio sin romper foco, los siguientes pasos m
 
 - ampliar tests numericos y de contrato
 - documentar mejor la API publica
-- anadir al menos un demo oficial de regresion y uno multiclase
+- anadir mas demos oficiales y datasets pequenos pero mas variados
 - enriquecer la carpeta `comparisons/`
 - limpiar estructura y nombres si el proyecto sigue creciendo
 

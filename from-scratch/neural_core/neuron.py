@@ -4,9 +4,10 @@ from typing import Any, Literal
 
 import numpy as np
 
-from .common import ActivationName, FloatArray, LossName
+from .common import ActivationName, FloatArray, LossName, OptimizerName
 from .layers import DenseLayer
 from .network import NeuralNetwork
+from .optimizers import BaseOptimizer
 
 
 class Neuron(NeuralNetwork):
@@ -22,6 +23,8 @@ class Neuron(NeuralNetwork):
         problem_type: Literal["regression", "binary"] = "regression",
         activation: ActivationName | None = None,
         learning_rate: float = 0.05,
+        optimizer: OptimizerName | BaseOptimizer = "sgd",
+        optimizer_kwargs: dict[str, Any] | None = None,
         max_epochs: int = 1000,
         batch_size: int | None = 32,
         shuffle: bool = True,
@@ -41,6 +44,8 @@ class Neuron(NeuralNetwork):
             layers=[DenseLayer(units=1, activation=final_activation)],
             problem_type=problem_type,
             learning_rate=learning_rate,
+            optimizer=optimizer,
+            optimizer_kwargs=optimizer_kwargs,
             max_epochs=max_epochs,
             batch_size=batch_size,
             shuffle=shuffle,
