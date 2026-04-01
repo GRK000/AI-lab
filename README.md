@@ -1,148 +1,196 @@
 # AI Lab
 
-Este repositorio es mi laboratorio personal de inteligencia artificial y aprendizaje automatico desde cero. Lo estoy construyendo con una intencion muy concreta: entender de verdad que ocurre dentro de un perceptron, una neurona, una capa densa y una red neuronal, sin esconder la logica detras de frameworks de alto nivel.
+Este repositorio es mi laboratorio personal de inteligencia artificial y aprendizaje automatico desde cero. Lo estoy construyendo con una intencion concreta: entender de verdad que ocurre dentro de un perceptron, una neurona, una capa densa y una red neuronal, sin esconder la logica detras de frameworks de alto nivel.
 
-No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea un repositorio que demuestre criterio tecnico, progresion real y capacidad para disenar software entendible, escalable y honesto. Si alguien llega aqui desde GitHub, mi objetivo es que vea dos cosas muy rapido:
+No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea un repositorio que demuestre criterio tecnico, progresion real y capacidad para disenar software entendible, escalable y honesto.
 
-1. Que se implementar fundamentos de machine learning sin depender de magia externa.
-2. Que se organizar ese trabajo como software mantenible, legible y preparado para crecer.
+## Vista rapida
+
+- Estado: funcional y testeado
+- Stack: Python, NumPy, matplotlib, unittest
+- Enfoque: machine learning y redes neuronales desde cero
+- Objetivo: aprender fundamentos y construir una base de software mantenible
+- Cobertura actual: perceptron, neurona diferenciable, capas densas, red neuronal, visualizacion y comparaciones externas
+
+## Capacidades actuales
+
+| Area | Estado actual |
+|---|---|
+| Perceptron binario | Implementado y probado |
+| Neurona diferenciable | Implementada y probada |
+| Capas densas | Implementadas con forward y backward |
+| Red neuronal multicapa | Implementada con mini-batches y backpropagation |
+| Activaciones | `identity`, `sigmoid`, `tanh`, `relu`, `softmax` |
+| Problemas soportados | Regresion, clasificacion binaria y multiclase |
+| Visualizacion | Historicos de entrenamiento y comparacion 2D |
+| Tests | Suite automatizada activa |
+| Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
 
 ## Que estoy construyendo
 
-Estoy desarrollando una base de modelos y componentes de redes neuronales desde cero, en Python y con NumPy, priorizando:
+Estoy desarrollando una base de modelos y componentes de redes neuronales en Python y NumPy, priorizando:
 
 - claridad matematica
 - codigo legible
 - separacion de responsabilidades
-- posibilidad real de escalar a arquitecturas mas complejas
-- compatibilidad con futuras mejoras como tests, benchmarks y documentacion tecnica mas profunda
+- vectorizacion cuando aporta valor real
+- posibilidad de escalar a arquitecturas y experimentos mas complejos
 
 El proyecto no pretende competir con PyTorch o TensorFlow. Pretende demostrar que entiendo el problema, se modelarlo bien y puedo traducir teoria en codigo serio.
 
 ## Estado actual del proyecto
 
-Hasta ahora he implementado:
+Ahora mismo el repositorio ya tiene una base funcional y testeada:
 
-- Un `Perceptron` binario clasico, entrenado con la regla del perceptron.
-- Una base modular para redes densas en `from-scratch/neural_core`.
-- Un sistema de activaciones desacoplado del resto de la logica.
-- Una clase `DenseLayer` para representar capas totalmente conectadas.
-- Una clase `NeuralNetwork` con entrenamiento por mini-batches y backpropagation.
-- Una clase `Neuron` como wrapper de una sola neurona diferenciable para problemas simples.
-- Demos sencillas para clasificacion binaria y resolucion de XOR.
-- Una carpeta `tests/` con validacion automatizada de activaciones, capas, perceptron, neurona y red.
-- Utilidades de visualizacion con `matplotlib` para historicos de entrenamiento y comparacion entre modelos.
-- Una carpeta `comparisons/` para contrastar el comportamiento del laboratorio con frameworks profesionales.
+- Un `Perceptron` binario clasico con `fit`, `partial_fit`, `predict`, `score`, `decision_function` y `margin`.
+- Un nucleo modular en `from-scratch/neural_core` para modelos diferenciables.
+- Activaciones desacopladas con soporte para `identity`, `sigmoid`, `tanh`, `relu` y `softmax`.
+- Una clase `DenseLayer` para capas totalmente conectadas con forward y backward vectorizados.
+- Una clase `NeuralNetwork` con mini-batches, backpropagation, perdidas para regresion, binaria y multiclase, y metodos `forward`, `predict`, `predict_proba` y `score`.
+- Una clase `Neuron` como caso particular de una sola neurona diferenciable, reutilizando la infraestructura general.
+- Un script de demo con comparacion `Perceptron` vs `Neuron` y una red para XOR.
+- Utilidades de visualizacion para historicos de entrenamiento y comparaciones en 2D.
+- Una suite de tests automatizados para activaciones, capas, perceptron, neurona, red y visualizacion.
+- Una carpeta `comparisons/` para contrastar el comportamiento del laboratorio con `scikit-learn` y `PyTorch`.
+
+En el estado actual, la suite automatica del proyecto pasa completa con:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Arranque rapido
+
+Si alguien entra al repositorio por primera vez, este es el recorrido mas corto para entenderlo:
+
+```bash
+python from-scratch/NeuralDemo.py
+python -m unittest discover -s tests -v
+```
+
+Con eso ya se puede ver:
+
+- una comparacion entre perceptron y neurona
+- una red densa resolviendo XOR
+- generacion automatica de graficos
+- validacion automatizada del nucleo
+
+## Requisitos
+
+Para trabajar con el repositorio en su estado actual basta con tener:
+
+- Python 3.11 o superior
+- `numpy`
+- `matplotlib`
+
+Dependencias opcionales para comparaciones externas:
+
+- `scikit-learn`
+- `torch`
 
 ## Estructura actual
 
 ```text
 AI - lab/
 |-- README.md
+|-- .gitignore
 |-- artifacts/
 |   `-- plots/
+|       |-- neuron_training_history.png
+|       |-- perceptron_training_history.png
+|       |-- perceptron_vs_neuron.png
+|       `-- xor_network_history.png
 |-- comparisons/
 |   |-- README.md
 |   |-- common.py
-|   |-- sklearn_compare.py
-|   `-- pytorch_compare.py
-|-- tests/
-|   |-- _bootstrap.py
-|   |-- test_activations.py
-|   |-- test_layers.py
-|   |-- test_network.py
-|   |-- test_neuron.py
-|   |-- test_perceptron.py
-|   `-- test_visualization.py
+|   |-- pytorch_compare.py
+|   `-- sklearn_compare.py
 |-- from-scratch/
-|   |-- perceptron.py
-|   |-- perceptron-binario.py
 |   |-- NeuralDemo.py
+|   |-- perceptron.py
 |   |-- neural_core/
 |   |   |-- __init__.py
-|   |   |-- common.py
 |   |   |-- activations.py
+|   |   |-- common.py
 |   |   |-- layers.py
 |   |   |-- network.py
 |   |   `-- neuron.py
 |   `-- visualization/
 |       |-- __init__.py
 |       `-- training_plots.py
+`-- tests/
+    |-- _bootstrap.py
+    |-- test_activations.py
+    |-- test_layers.py
+    |-- test_network.py
+    |-- test_neuron.py
+    |-- test_perceptron.py
+    `-- test_visualization.py
 ```
 
 ## Que hace cada parte
 
 ### `from-scratch/perceptron.py`
 
-Aqui mantengo una implementacion de perceptron binario clasico. Me interesa porque es una pieza fundacional: separa con claridad la intuicion de frontera lineal, el concepto de margen y la actualizacion basada en errores.
+Aqui mantengo una implementacion de perceptron binario clasico. Es la pieza fundacional para explicar frontera lineal, margen y actualizacion basada en errores sin mezclar todavia el enfoque del gradiente.
 
-No es solo un ejercicio academico. Tambien sirve como punto de comparacion frente a la neurona entrenada por gradiente y frente a redes mas profundas.
+Tambien sirve como punto de comparacion frente a la neurona diferenciable y frente a redes mas profundas.
 
 ### `from-scratch/neural_core/activations.py`
 
-Aqui centralizo las funciones de activacion y sus derivadas. Tome esta decision porque no quiero mezclar la matematica de activacion con la logica de entrenamiento o con el almacenamiento de parametros.
-
-Ahora mismo soporta:
-
-- `identity`
-- `sigmoid`
-- `tanh`
-- `relu`
-- `softmax`
-
-Esto me permite cambiar el comportamiento de una capa sin reescribir la arquitectura completa.
+Aqui centralizo las funciones de activacion y sus derivadas. Esta separacion evita mezclar la matematica de activacion con la logica de entrenamiento o con el almacenamiento de parametros.
 
 ### `from-scratch/neural_core/layers.py`
 
-Aqui esta `DenseLayer`, que representa una capa totalmente conectada. Internamente almacena pesos, sesgos y caches del forward para poder hacer backpropagation de forma limpia.
+Aqui vive `DenseLayer`, que representa una capa totalmente conectada. Internamente almacena pesos, sesgos y caches del forward para poder hacer backpropagation de forma limpia.
 
-La decision importante aqui fue vectorizar la implementacion. Aunque conceptualmente hablo de neuronas, el calculo se hace con matrices para mantener eficiencia y para que el salto a redes mayores sea natural.
+La implementacion esta vectorizada, de modo que el salto desde una intuicion de neuronas individuales a una arquitectura matricial real sea natural.
 
 ### `from-scratch/neural_core/network.py`
 
 Esta es la pieza central del proyecto actual.
 
-La clase `NeuralNetwork` ya resuelve varios problemas relevantes:
+La clase `NeuralNetwork` ya resuelve:
 
 - entrenamiento por epocas
 - mini-batches
 - mezcla aleatoria de datos
 - inicializacion reproducible con `random_state`
-- perdidas para regresion, binaria y multiclase
-- `forward`, `predict`, `predict_proba` y `score`
-- preparacion y validacion de targets
+- soporte para regresion, clasificacion binaria y multiclase
+- validacion y preparacion de `X` e `y`
+- forward, prediccion y scoring
 - backpropagation sobre varias capas
 
-Mi intencion aqui no era solo "hacer que funcione", sino disenar una API que no me obligue a tirar codigo cuando quiera anadir optimizadores, regularizacion adicional, metricas o persistencia.
+La API ya esta preparada para crecer hacia optimizadores, regularizacion adicional, persistencia y mejores experimentos sin tener que rehacer el nucleo.
 
 ### `from-scratch/neural_core/neuron.py`
 
-Aqui encapsulo una sola neurona diferenciable como un caso particular de la red general. Lo hice asi porque una neurona aislada es util para explicar ideas, pero no queria duplicar logica de entrenamiento.
+Aqui encapsulo una sola neurona diferenciable como caso particular de la red general. Esto evita duplicar logica de entrenamiento y mantiene el proyecto mas coherente.
 
-En otras palabras: la neurona simple reutiliza la infraestructura correcta, en lugar de convertirse en una excepcion mal mantenida.
+### `from-scratch/NeuralDemo.py`
 
-### `from-scratch/NeuralDemo.py` y `from-scratch/perceptron-binario.py`
+Este archivo es el punto de entrada principal para demos manuales del proyecto. Actualmente incluye:
 
-Estos archivos actuan como puntos de entrada y ejemplos de uso. Para mi son importantes porque un repositorio orientado a portfolio no debe obligar a quien lo visita a recorrer toda la base de codigo para entender si algo funciona o no.
+- una comparacion entre `Perceptron` y `Neuron` sobre un problema binario sencillo
+- una red neuronal densa para resolver XOR
+- guardado automatico de graficos en `artifacts/plots`
 
 ### `from-scratch/visualization/training_plots.py`
 
-Aqui concentro la generacion de graficos del proyecto. Uso `matplotlib` porque mi objetivo no es reinventar una libreria de visualizacion, sino analizar entrenamiento y producir artefactos utiles para documentar el comportamiento de los modelos.
+Aqui concentro la generacion de graficos del proyecto con `matplotlib`.
 
-Ahora mismo estas utilidades sirven para:
+Ahora mismo las utilidades permiten:
 
-- pintar historicos de entrenamiento
+- pintar historicos de entrenamiento a partir de distintos tipos de snapshot
 - comparar perceptron y neurona sobre un problema binario en 2D
-- guardar las figuras automaticamente en `artifacts/plots`
+- guardar figuras automaticamente en `artifacts/plots`
 
 ### `tests/`
 
-La carpeta de tests existe para que el laboratorio deje de depender solo de demos manuales. Quiero poder cambiar activaciones, inicializaciones o detalles del entrenamiento con la tranquilidad de que una suite automatizada detectara regresiones.
-
-La suite valida:
+La carpeta de tests existe para que el laboratorio no dependa solo de demos manuales. La suite actual valida:
 
 - funciones de activacion y sus derivadas
-- construccion y backward de capas densas
+- construccion, forward y backward de capas densas
 - perceptron clasico
 - neurona diferenciable
 - red neuronal en problemas de regresion, binarios y multiclase
@@ -150,7 +198,7 @@ La suite valida:
 
 ### `comparisons/`
 
-Esta carpeta separa la comparacion contra frameworks profesionales del nucleo hecho desde cero. Para mi es importante porque demuestra dos cosas: que entiendo los fundamentos y que se contrastarlos contra herramientas industriales.
+Esta carpeta separa las comparaciones contra frameworks profesionales del nucleo hecho desde cero.
 
 He dejado scripts base para:
 
@@ -161,17 +209,15 @@ Si esas dependencias no estan instaladas, los scripts terminan con un mensaje cl
 
 ## Que demuestra este proyecto a nivel tecnico
 
-Este repositorio esta pensado para enseñar más que resultados. Quiero que quien lo vea entienda como pienso al programar.
-
 Las decisiones que ya refleja el codigo son:
 
-- Se separar una implementacion experimental de un nucleo reutilizable.
-- Se disenar modulos pequenos con una responsabilidad clara.
-- Se traducir conceptos matematicos a una API de software razonable.
-- Se priorizar codigo vectorizado cuando tiene sentido.
-- Se dejar la base preparada para escalar, en lugar de encadenar scripts irreutilizables.
+- separacion entre implementaciones fundacionales y nucleo reutilizable
+- modulos pequenos con responsabilidad clara
+- traduccion de conceptos matematicos a una API razonable
+- uso de NumPy de forma vectorizada cuando tiene sentido
+- una base preparada para crecer sin convertirse en una acumulacion de scripts
 
-Tambien hay una decision deliberada en lo que no estoy haciendo todavia: no he corrido a envolver esto en una interfaz bonita ni a vender humo con metricas artificiales. Primero quiero una base solida.
+Tambien hay una decision deliberada en lo que todavia no estoy haciendo: no he corrido a envolver esto en una interfaz bonita ni a vender humo con metricas artificiales. Primero quiero una base solida.
 
 ## Como ejecutar el proyecto
 
@@ -179,20 +225,30 @@ Desde la raiz del repositorio:
 
 ```bash
 python from-scratch/perceptron.py
-python from-scratch/perceptron-binario.py
 python from-scratch/NeuralDemo.py
 python -m unittest discover -s tests -v
 python comparisons/sklearn_compare.py
 python comparisons/pytorch_compare.py
 ```
 
-Los scripts actuales muestran ejemplos pequenos para verificar:
+Los scripts actuales permiten verificar:
 
-- clasificacion binaria simple
-- uso de una neurona diferenciable
+- clasificacion binaria simple con perceptron
+- comparacion entre perceptron y neurona diferenciable
 - resolucion de XOR mediante una red densa
 - generacion automatica de graficos en `artifacts/plots`
 - validacion automatizada del nucleo
+
+## Artefactos generados
+
+El proyecto ya genera figuras reutilizables en `artifacts/plots`, utiles tanto para depuracion como para documentacion visual del repositorio:
+
+- `perceptron_vs_neuron.png`
+- `perceptron_training_history.png`
+- `neuron_training_history.png`
+- `xor_network_history.png`
+
+Esto ayuda a que el repositorio no solo diga que el entrenamiento funciona, sino que tambien lo muestre.
 
 ## Filosofia del repositorio
 
@@ -207,106 +263,96 @@ No quiero saltarme capas de comprension. Cuando uso PyTorch, quiero hacerlo con 
 
 ## Limitaciones actuales
 
-No intento esconder lo que todavia falta. Un proyecto serio mejora mucho cuando deja claras sus fronteras actuales.
+No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, varias piezas importantes:
 
-Ahora mismo faltan, o estan verdes, varias piezas importantes:
-
-- benchmarks mas amplios y comparativas mas exigentes
-- tipado aun mas estricto en algunos puntos
-- documentacion de ejemplos mas amplia
-- separacion formal entre codigo de libreria y scripts de demo
-- optimizadores adicionales como SGD con momentum o Adam
+- optimizadores adicionales como momentum o Adam
 - regularizacion mas completa
 - guardado y carga de modelos
-- visualizaciones mas ricas, incluyendo fronteras multiclase y curvas comparativas adicionales
-- datasets algo mas realistas
+- una separacion aun mas formal entre libreria, demos y experimentos
+- benchmarks y comparativas mas exigentes
+- datasets algo mas representativos
+- documentacion de API y ejemplos mas amplia
+- visualizaciones mas ricas, incluyendo mas casos multiclase y comparativas
 
-## Que hare para mejorar el proyecto
+## Roadmap visible
 
-Si quiero que este repositorio suba de nivel y no se quede en un "experimento simpatico", estos son los siguientes pasos naturales:
+- [x] Implementar un perceptron binario desde cero
+- [x] Implementar una neurona diferenciable reutilizando infraestructura comun
+- [x] Implementar capas densas con forward y backward
+- [x] Implementar una red neuronal multicapa con mini-batches
+- [x] Anadir visualizacion de entrenamiento
+- [x] Anadir tests automatizados del nucleo
+- [x] Preparar comparaciones base con frameworks externos
+- [ ] Anadir optimizadores como momentum o Adam
+- [ ] Incorporar persistencia de modelos
+- [ ] Introducir nuevas capas o abstracciones de capa
+- [ ] Anadir demos oficiales de regresion y multiclase
+- [ ] Mejorar comparativas y benchmarks
+- [ ] Refinar la separacion entre libreria, demos y experimentos
 
-### 1. Profundizar la estrategia de tests
+## Hacia donde puede avanzar de forma logica
 
-Quiero validar no solo que los ejemplos funcionan, sino que:
+La evolucion natural del proyecto no es anadir clases sin criterio, sino ampliar el nucleo actual en el orden correcto:
 
-- las dimensiones son correctas
-- las perdidas bajan donde deben
-- los gradientes responden como espero
-- la API falla bien cuando recibe entradas invalidas
-- las comparativas externas mantienen una referencia razonable
+### 1. Reforzar `DenseLayer` y `NeuralNetwork`
 
-### 2. Separar demos, libreria y experimentos
+Lo mas logico es seguir ampliando las clases que ya sostienen el proyecto:
 
-Mi siguiente refactor razonable es dejar tres zonas claras:
+- optimizadores configurables
+- regularizacion adicional
+- validacion durante entrenamiento
+- early stopping
+- persistencia basica del modelo
 
-- `core/` para la logica reutilizable
-- `examples/` para casos ejecutables
-- `experiments/` para pruebas mas libres
+### 2. Formalizar mejor la API
 
-Eso haria que el repositorio respire mejor y sea mas facil de evaluar.
+Antes de multiplicar tipos de modelo, conviene consolidar mejor la API publica y dejar mas claro que parte del codigo es nucleo reutilizable y que parte son demos.
 
-### 3. Ampliar experimentos y comparativas
+### 3. Introducir nuevas capas
 
-No basta con decir "funciona". Quiero incluir comparativas pequenas pero honestas:
+Cuando el nucleo este mas firme, el siguiente salto razonable es anadir nuevas capas o variantes, por ejemplo:
 
-- perceptron clasico vs neurona sigmoide
-- una capa vs dos capas
-- distintas activaciones
-- distintos tamanos de capa oculta
-- comparacion contra `scikit-learn` y `PyTorch` con datasets mas representativos
+- capas con dropout
+- una interfaz base mas explicita para capas
+- bloques mas reutilizables para arquitecturas futuras
 
-Eso convertiria el repo en una herramienta de aprendizaje y tambien en una demostracion de criterio experimental.
+### 4. Subir el nivel experimental
 
-### 4. Mejorar la presentacion para GitHub
+Despues tiene sentido ampliar demos y comparativas:
 
-Para que el proyecto gane fuerza como portfolio, quiero anadir:
+- regresion mas visible
+- multiclase con datasets sinteticos
+- comparativas mas limpias frente a `scikit-learn` y `PyTorch`
+- exploracion de activaciones, tamanos de capa y batch size
 
-- imagenes o diagramas sencillos de arquitectura
-- tablas cortas con capacidades actuales
-- un changelog o roadmap visible
-- ejemplos de salida esperada
-- una seccion de "lecciones aprendidas"
+### 5. Endurecer tests y medicion
 
-Un buen proyecto no solo se programa bien; tambien se comunica bien.
+Una vez que el nucleo crezca, toca validar mejor:
 
-### 5. Incorporar datasets mas representativos
+- shapes y errores esperados
+- estabilidad numerica basica
+- comportamiento de gradientes
+- coste por epoca y efecto del batch size
 
-XOR esta bien como prueba conceptual, pero no basta. El proyecto sube mucho cuando demuestra comportamiento en datos algo mas serios, aunque sigan siendo pequenos:
+## Proximos pasos inmediatos razonables
 
-- clasificacion lineal y no lineal sintetica
-- regresion simple
-- multiclase en datos generados
-- comparacion basica con una implementacion de referencia
+Si quiero subir el nivel del repositorio sin romper foco, los siguientes pasos mas coherentes son:
 
-### 6. Medir y perfilar
-
-Si de verdad quiero que esto transmita nivel, necesito enseñar que tambien se mirar rendimiento. NumPy ya da una buena base, pero quiero medir:
-
-- coste por epoca
-- impacto del tamano de batch
-- diferencias entre configuraciones
-- cuellos de botella del codigo
-
-## Por que este proyecto merece la pena
-
-Este repositorio me sirve para aprender, pero no solo para aprender. Tambien me sirve para demostrar algo que valoro mucho en ingenieria:
-
-soy capaz de empezar por fundamentos, detectar cuando un script ya no escala, refactorizarlo en piezas limpias y dejar preparado el terreno para lo siguiente.
-
-Eso, para mi, es mucho mas interesante que tener una demo vistosa montada deprisa.
-
-
-## Proximos pasos inmediatos
-
-Mi siguiente iteracion probable sera una combinacion de estas tareas:
-
-- ampliar tests a casos numericos mas exigentes
-- enriquecer la carpeta de comparaciones externas
+- ampliar tests numericos y de contrato
 - documentar mejor la API publica
-- incorporar al menos un caso de regresion y uno multiclase como demos oficiales
-- limpiar nombres de archivos para que la estructura sea aun mas consistente
-- generar imagenes reutilizables para el README y el perfil de GitHub
+- anadir al menos un demo oficial de regresion y uno multiclase
+- enriquecer la carpeta `comparisons/`
+- limpiar estructura y nombres si el proyecto sigue creciendo
 
-## Conclusión
+## Por que este repositorio puede ser util
 
-Estoy construyendo este proyecto como laboratorio, como portfolio y como prueba de disciplina tecnica. Prefiero que cada parte este entendida y justificada antes de seguir anadiendo complejidad.
+Este proyecto no esta pensado solo como ejercicio academico. Tambien sirve como:
+
+- laboratorio para entender backpropagation y entrenamiento paso a paso
+- base para experimentar con nuevas capas y optimizadores
+- portfolio tecnico con decisiones de arquitectura visibles
+- punto de comparacion entre fundamentos implementados a mano y tooling industrial
+
+## Conclusion
+
+Estoy construyendo este proyecto como laboratorio, como portfolio y como prueba de disciplina tecnica. La base actual ya funciona, ya esta testeada y ya tiene una arquitectura que merece la pena seguir ampliando con criterio.
