@@ -10,7 +10,7 @@ No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea
 - Stack: Python, NumPy, matplotlib, unittest
 - Enfoque: machine learning y redes neuronales desde cero
 - Objetivo: aprender fundamentos y construir una base de software mantenible
-- Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, visualizacion y comparaciones externas
+- Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, visualizacion, ejemplos y comparaciones externas
 
 ## Capacidades actuales
 
@@ -25,6 +25,7 @@ No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea
 | Optimizadores | `sgd`, `momentum`, `rmsprop`, `adadelta`, `adam`, `adamw`, `adamax` |
 | Problemas soportados | Regresion, clasificacion binaria y multiclase |
 | Visualizacion | Historicos de entrenamiento, comparacion 2D y comparacion entre optimizadores |
+| Examples | Demo real sobre MNIST con red densa |
 | Tests | Suite automatizada activa |
 | Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
 
@@ -53,6 +54,7 @@ Ahora mismo el repositorio ya tiene una base funcional y testeada:
 - Una clase `Neuron` como caso particular de una sola neurona diferenciable, reutilizando la infraestructura general.
 - Un modulo de optimizadores con soporte para `SGD`, `Momentum`, `RMSprop`, `Adadelta`, `Adam`, `AdamW` y `Adamax`.
 - Un script de demo con comparacion `Perceptron` vs `Neuron`, comparativa de optimizadores, una red multiclase con dropout y una red para XOR.
+- Una carpeta `examples/` para demos mas orientadas al usuario, incluyendo MNIST.
 - Utilidades de visualizacion para historicos de entrenamiento, comparaciones en 2D y comparativas entre optimizadores.
 - Una suite de tests automatizados para activaciones, capas, dropout, perceptron, neurona, red y visualizacion.
 - Una carpeta `comparisons/` para contrastar el comportamiento del laboratorio con `scikit-learn` y `PyTorch`.
@@ -69,6 +71,7 @@ Si alguien entra al repositorio por primera vez, este es el recorrido mas corto 
 
 ```bash
 python from-scratch/NeuralDemo.py
+python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
 python -m unittest discover -s tests -v
 ```
 
@@ -78,6 +81,7 @@ Con eso ya se puede ver:
 - una comparativa de optimizadores sobre un problema de regresion
 - una red multiclase con `DropoutLayer`
 - una red densa resolviendo XOR
+- una demo mas realista sobre MNIST
 - generacion automatica de graficos
 - validacion automatizada del nucleo
 
@@ -94,6 +98,12 @@ Dependencias opcionales para comparaciones externas:
 - `scikit-learn`
 - `torch`
 
+Dependencias opcionales para la demo de MNIST:
+
+- `tensorflow`
+- `keras`
+- `scikit-learn`
+
 ## Estructura actual
 
 ```text
@@ -102,6 +112,8 @@ AI - lab/
 |-- .gitignore
 |-- artifacts/
 |   `-- plots/
+|       |-- mnist_sample_predictions.png
+|       |-- mnist_training_history.png
 |       |-- multiclass_dropout_history.png
 |       |-- neuron_training_history.png
 |       |-- optimizer_regression_comparison.png
@@ -113,6 +125,9 @@ AI - lab/
 |   |-- common.py
 |   |-- pytorch_compare.py
 |   `-- sklearn_compare.py
+|-- examples/
+|   |-- README.md
+|   `-- mnist_demo.py
 |-- from-scratch/
 |   |-- NeuralDemo.py
 |   |-- perceptron.py
@@ -206,6 +221,19 @@ Este archivo es el punto de entrada principal para demos manuales del proyecto. 
 - una red neuronal densa para resolver XOR
 - guardado automatico de graficos en `artifacts/plots`
 
+### `examples/mnist_demo.py`
+
+Este script usa el nucleo del proyecto para entrenar una red densa multiclase sobre MNIST.
+
+Incluye:
+
+- carga de MNIST desde varias fuentes opcionales
+- preprocesado simple de imagenes `28x28` a vectores de `784`
+- entrenamiento con `NeuralNetwork`, `DenseLayer`, `DropoutLayer` y `Adam`
+- grafico de entrenamiento y una vista previa de predicciones
+
+La idea aqui no es competir con una CNN, sino demostrar que el nucleo actual ya puede enfrentarse a un dataset real y conocido.
+
 ### `from-scratch/visualization/training_plots.py`
 
 Aqui concentro la generacion de graficos del proyecto con `matplotlib`.
@@ -261,6 +289,7 @@ Desde la raiz del repositorio:
 ```bash
 python from-scratch/perceptron.py
 python from-scratch/NeuralDemo.py
+python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
 python -m unittest discover -s tests -v
 python comparisons/sklearn_compare.py
 python comparisons/pytorch_compare.py
@@ -273,6 +302,7 @@ Los scripts actuales permiten verificar:
 - comparacion entre optimizadores sobre regresion
 - uso de `DropoutLayer` en una red multiclase
 - resolucion de XOR mediante una red densa
+- una demo realista de clasificacion multiclase sobre MNIST
 - generacion automatica de graficos en `artifacts/plots`
 - validacion automatizada del nucleo
 
@@ -286,6 +316,8 @@ El proyecto ya genera figuras reutilizables en `artifacts/plots`, utiles tanto p
 - `optimizer_regression_comparison.png`
 - `multiclass_dropout_history.png`
 - `xor_network_history.png`
+- `mnist_training_history.png`
+- `mnist_sample_predictions.png`
 
 Esto ayuda a que el repositorio no solo diga que el entrenamiento funciona, sino que tambien lo muestre.
 
