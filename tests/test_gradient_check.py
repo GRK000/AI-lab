@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from _bootstrap import FROM_SCRATCH  # noqa: F401
-from neural_core import DenseLayer, check_dense_layer_gradients
+
+from ai_lab.neural_core import DenseLayer, check_dense_layer_gradients
 
 
 class GradientCheckTests(unittest.TestCase):

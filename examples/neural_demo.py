@@ -4,9 +4,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-from neural_core import DenseLayer, DropoutLayer, NeuralNetwork, Neuron
-from perceptron import Perceptron
-from visualization import (
+
+from ai_lab.neural_core import DenseLayer, DropoutLayer, NeuralNetwork, Neuron
+from ai_lab.perceptron import Perceptron
+from ai_lab.visualization import (
     plot_binary_model_comparison,
     plot_optimizer_histories,
     plot_training_history,

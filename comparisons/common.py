@@ -1,18 +1,14 @@
 from __future__ import annotations
 
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FROM_SCRATCH = REPO_ROOT / "from-scratch"
-if str(FROM_SCRATCH) not in sys.path:
-    sys.path.insert(0, str(FROM_SCRATCH))
 
-from neural_core import DenseLayer, NeuralNetwork, Neuron  # noqa: E402
-from perceptron import Perceptron  # noqa: E402
+from ai_lab.neural_core import DenseLayer, NeuralNetwork, Neuron
+from ai_lab.perceptron import Perceptron
 
 
 @dataclass(slots=True)

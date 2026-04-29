@@ -4,12 +4,12 @@ The project is split into a small reusable core and executable demos.
 
 ## Core
 
-- `neural_core.activations`: activation functions and derivatives.
-- `neural_core.layers`: trainable and non-trainable layer blocks.
-- `neural_core.optimizers`: parameter update rules with state.
-- `neural_core.network`: training loop, batching, losses, prediction and persistence.
-- `neural_core.callbacks`: optional training lifecycle hooks.
-- `neural_core.metrics`: evaluation helpers for classification and regression.
+- `ai_lab.neural_core.activations`: activation functions and derivatives.
+- `ai_lab.neural_core.layers`: trainable and non-trainable layer blocks.
+- `ai_lab.neural_core.optimizers`: parameter update rules with state.
+- `ai_lab.neural_core.network`: training loop, batching, losses, prediction and persistence.
+- `ai_lab.neural_core.callbacks`: optional training lifecycle hooks.
+- `ai_lab.neural_core.metrics`: evaluation helpers for classification and regression.
 
 `NeuralNetwork` owns the training loop. Layers own forward/backward math. Optimizers
 own parameter updates. This keeps backpropagation readable and avoids hiding model

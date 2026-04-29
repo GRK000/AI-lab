@@ -19,6 +19,7 @@ Este proyecto demuestra que puedo traducir fundamentos de machine learning a sof
 - capas adicionales: flatten, batch normalization, convolucion 2D y max pooling 2D
 - gradient checking reutilizable para validar derivadas
 - benchmarks reproducibles y ejemplos con datasets clasicos
+- frontend React/Tailwind para visualizar el funcionamiento interno del nucleo
 - suite automatizada con tests
 - empaquetado instalable con `pyproject.toml`
 - CI preparado con GitHub Actions
@@ -57,6 +58,7 @@ La intencion no es sustituir PyTorch. La intencion es demostrar comprension prof
 | Visualizacion | Historicos de entrenamiento, comparacion 2D y comparacion entre optimizadores |
 | Examples | Demo real sobre MNIST con red densa |
 | Benchmarks | Tabla reproducible con tareas sinteticas y comparacion opcional sklearn |
+| Frontend | App React + Tailwind publicable en GitHub Pages |
 | Tests | Suite automatizada activa |
 | CI | Workflow de GitHub Actions para tests y lint |
 | Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
@@ -78,7 +80,7 @@ El proyecto no pretende competir con PyTorch o TensorFlow. Pretende demostrar qu
 Ahora mismo el repositorio ya tiene una base funcional y testeada:
 
 - Un `Perceptron` binario clasico con `fit`, `partial_fit`, `predict`, `score`, `decision_function` y `margin`.
-- Un nucleo modular en `from-scratch/neural_core` para modelos diferenciables.
+- Un nucleo modular en `src/ai_lab/neural_core` para modelos diferenciables.
 - Activaciones desacopladas con soporte para `identity`, `sigmoid`, `tanh`, `relu` y `softmax`.
 - Una clase `DenseLayer` para capas totalmente conectadas con forward y backward vectorizados.
 - Una clase `DropoutLayer` para regularizacion en capas ocultas.
@@ -100,7 +102,7 @@ python -m unittest discover -s tests -v
 Resultado actual:
 
 ```text
-Ran 42+ tests
+Ran 42 tests
 OK
 ```
 
@@ -110,10 +112,10 @@ Si alguien entra al repositorio por primera vez, este es el recorrido mas corto 
 
 ```bash
 python -m pip install -e .
-python from-scratch/NeuralDemo.py
+python examples/neural_demo.py
 python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
 python examples/classic_datasets_demo.py
-python benchmarks/run_benchmarks.py
+python -m ai_lab.benchmarks.run_benchmarks
 python -m unittest discover -s tests -v
 ```
 
@@ -141,7 +143,7 @@ Para desarrollo local con lint:
 
 ```bash
 python -m pip install -e ".[dev]"
-python -m ruff check from-scratch tests examples comparisons benchmarks
+python -m ruff check src tests examples comparisons
 ```
 
 Tambien hay un comando CLI para benchmarks:
@@ -153,7 +155,7 @@ ai-lab-benchmark
 Si el directorio de scripts de Python no esta en `PATH`, usa:
 
 ```bash
-python -m benchmarks.run_benchmarks
+python -m ai_lab.benchmarks.run_benchmarks
 ```
 
 ## Documentacion tecnica
@@ -168,6 +170,29 @@ La carpeta `docs/` contiene notas cortas orientadas a explicar decisiones:
 - `docs/frontend_plan.md`
 
 Tambien hay un notebook de entrada en `notebooks/01_training_a_network_from_scratch.ipynb`.
+
+## Frontend visual
+
+La carpeta `frontend/` contiene una app React, TypeScript, Tailwind y Vite para visualizar
+el funcionamiento interno de las clases principales del proyecto.
+
+Incluye navegacion por teclado, controles interactivos por modulo y
+visualizaciones responsive preparadas para GitHub Pages.
+
+```bash
+cd frontend
+npm install
+npm run dev
+npm run lint
+npm run build
+```
+
+La app esta preparada para GitHub Pages:
+
+- `vite.config.ts` usa `base: "./"` para assets relativos.
+- `.github/workflows/pages.yml` compila `frontend/` y despliega `frontend/dist`.
+- `frontend/public/traces/` contiene trazas JSON reutilizables.
+- `frontend/public/plots/` incluye artefactos visuales generados por el proyecto.
 
 ## Requisitos
 
@@ -211,15 +236,25 @@ AI - lab/
 |   `-- sklearn_compare.py
 |-- examples/
 |   |-- README.md
+|   |-- classic_datasets_demo.py
+|   |-- neural_demo.py
 |   `-- mnist_demo.py
-|-- from-scratch/
-|   |-- NeuralDemo.py
+|-- frontend/
+|   |-- public/
+|   |-- src/
+|   `-- package.json
+|-- src/ai_lab/
+|   |-- __init__.py
+|   |-- benchmarks/
 |   |-- perceptron.py
 |   |-- neural_core/
 |   |   |-- __init__.py
 |   |   |-- activations.py
+|   |   |-- callbacks.py
 |   |   |-- common.py
+|   |   |-- gradient_check.py
 |   |   |-- layers.py
+|   |   |-- metrics.py
 |   |   |-- network.py
 |   |   |-- neuron.py
 |   |   `-- optimizers.py
@@ -238,17 +273,17 @@ AI - lab/
 
 ## Que hace cada parte
 
-### `from-scratch/perceptron.py`
+### `src/ai_lab/perceptron.py`
 
 Aqui mantengo una implementacion de perceptron binario clasico. Es la pieza fundacional para explicar frontera lineal, margen y actualizacion basada en errores sin mezclar todavia el enfoque del gradiente.
 
 Tambien sirve como punto de comparacion frente a la neurona diferenciable y frente a redes mas profundas.
 
-### `from-scratch/neural_core/activations.py`
+### `src/ai_lab/neural_core/activations.py`
 
 Aqui centralizo las funciones de activacion y sus derivadas. Esta separacion evita mezclar la matematica de activacion con la logica de entrenamiento o con el almacenamiento de parametros.
 
-### `from-scratch/neural_core/layers.py`
+### `src/ai_lab/neural_core/layers.py`
 
 Aqui viven `DenseLayer` y `DropoutLayer`.
 
@@ -258,7 +293,7 @@ Aqui viven `DenseLayer` y `DropoutLayer`.
 
 La implementacion esta vectorizada, de modo que el salto desde una intuicion de neuronas individuales a una arquitectura matricial real sea natural.
 
-### `from-scratch/neural_core/optimizers.py`
+### `src/ai_lab/neural_core/optimizers.py`
 
 Aqui concentro la logica de actualizacion de parametros. Esta separacion evita mezclar reglas de optimizacion con la definicion de capas.
 
@@ -272,7 +307,7 @@ Ahora mismo el proyecto soporta:
 - `AdamW`
 - `Adamax`
 
-### `from-scratch/neural_core/network.py`
+### `src/ai_lab/neural_core/network.py`
 
 Esta es la pieza central del proyecto actual.
 
@@ -291,11 +326,11 @@ La clase `NeuralNetwork` ya resuelve:
 
 La API ya esta preparada para crecer hacia optimizadores, regularizacion adicional, persistencia y mejores experimentos sin tener que rehacer el nucleo.
 
-### `from-scratch/neural_core/neuron.py`
+### `src/ai_lab/neural_core/neuron.py`
 
 Aqui encapsulo una sola neurona diferenciable como caso particular de la red general. Esto evita duplicar logica de entrenamiento y mantiene el proyecto mas coherente.
 
-### `from-scratch/NeuralDemo.py`
+### `examples/neural_demo.py`
 
 Este archivo es el punto de entrada principal para demos manuales del proyecto. Actualmente incluye:
 
@@ -318,7 +353,7 @@ Incluye:
 
 La idea aqui no es competir con una CNN, sino demostrar que el nucleo actual ya puede enfrentarse a un dataset real y conocido.
 
-### `from-scratch/visualization/training_plots.py`
+### `src/ai_lab/visualization/training_plots.py`
 
 Aqui concentro la generacion de graficos del proyecto con `matplotlib`.
 
@@ -359,20 +394,20 @@ Si esas dependencias no estan instaladas, los scripts terminan con un mensaje cl
 Las decisiones que ya refleja el codigo son:
 
 - separacion entre implementaciones fundacionales y nucleo reutilizable
-- modulos pequeños con responsabilidad clara
+- modulos pequenos con responsabilidad clara
 - traduccion de conceptos matematicos a una API razonable
 - uso de NumPy de forma vectorizada cuando tiene sentido
 - una base preparada para crecer sin convertirse en una acumulacion de scripts
 
-Tambien hay una decision deliberada en lo que todavia no estoy haciendo: no he corrido a envolver esto en una interfaz bonita ni a vender humo con metricas artificiales. Primero quiero una base solida.
+Tambien hay una decision deliberada en el alcance: el frontend visual no sustituye al nucleo, sino que lo acompana para explicar sus clases y trazas sin esconder la implementacion real.
 
 ## Como ejecutar el proyecto
 
 Desde la raiz del repositorio:
 
 ```bash
-python from-scratch/perceptron.py
-python from-scratch/NeuralDemo.py
+python -m ai_lab.perceptron
+python examples/neural_demo.py
 python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
 python -m unittest discover -s tests -v
 python comparisons/sklearn_compare.py
@@ -503,7 +538,7 @@ Si quiero subir el nivel del repositorio sin romper foco, los siguientes pasos m
 
 - ampliar tests numericos y de contrato
 - documentar mejor la API publica
-- anadir mas demos oficiales y datasets pequeños pero mas variados
+- anadir mas demos oficiales y datasets pequenos pero mas variados
 - enriquecer la carpeta `comparisons/`
 - limpiar estructura y nombres si el proyecto sigue creciendo
 

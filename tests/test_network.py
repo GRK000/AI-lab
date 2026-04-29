@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 
 import numpy as np
-from _bootstrap import FROM_SCRATCH  # noqa: F401
-from neural_core import DenseLayer, DropoutLayer, NeuralNetwork
+
+from ai_lab.neural_core import DenseLayer, DropoutLayer, NeuralNetwork
 
 
 class NeuralNetworkTests(unittest.TestCase):

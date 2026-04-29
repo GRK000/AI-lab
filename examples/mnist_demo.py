@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -9,12 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FROM_SCRATCH = REPO_ROOT / "from-scratch"
-if str(FROM_SCRATCH) not in sys.path:
-    sys.path.insert(0, str(FROM_SCRATCH))
 
-from neural_core import DenseLayer, DropoutLayer, NeuralNetwork
-from visualization import plot_training_history
+from ai_lab.neural_core import DenseLayer, DropoutLayer, NeuralNetwork
+from ai_lab.visualization import plot_training_history
 
 PLOTS_DIR = REPO_ROOT / "artifacts" / "plots"
 

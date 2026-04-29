@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from _bootstrap import FROM_SCRATCH  # noqa: F401
-from neural_core import classification_report, confusion_matrix, r2_score
+
+from ai_lab.neural_core import classification_report, confusion_matrix, r2_score
 
 
 class MetricsTests(unittest.TestCase):

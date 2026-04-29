@@ -3,10 +3,11 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from _bootstrap import FROM_SCRATCH, ROOT  # noqa: F401
-from neural_core import Neuron
-from perceptron import Perceptron
-from visualization import (
+from _bootstrap import ROOT
+
+from ai_lab.neural_core import Neuron
+from ai_lab.perceptron import Perceptron
+from ai_lab.visualization import (
     plot_binary_model_comparison,
     plot_optimizer_histories,
     plot_training_history,

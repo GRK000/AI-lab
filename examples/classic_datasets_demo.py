@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FROM_SCRATCH = REPO_ROOT / "from-scratch"
-if str(FROM_SCRATCH) not in sys.path:
-    sys.path.insert(0, str(FROM_SCRATCH))
 
-from neural_core import DenseLayer, NeuralNetwork, classification_report, r2_score
+from ai_lab.neural_core import DenseLayer, NeuralNetwork, classification_report, r2_score
 
 
 def main() -> None:

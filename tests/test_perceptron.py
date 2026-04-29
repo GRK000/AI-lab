@@ -3,8 +3,8 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from _bootstrap import FROM_SCRATCH  # noqa: F401
-from perceptron import Perceptron
+
+from ai_lab.perceptron import Perceptron
 
 
 class PerceptronTests(unittest.TestCase):

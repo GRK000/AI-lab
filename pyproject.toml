@@ -30,11 +30,16 @@ compare = [
 ]
 
 [project.scripts]
-ai-lab-benchmark = "neural_core.cli:benchmark_main"
+ai-lab-benchmark = "ai_lab.neural_core.cli:benchmark_main"
 
 [tool.setuptools]
-package-dir = { neural_core = "from-scratch/neural_core", visualization = "from-scratch/visualization", benchmarks = "benchmarks" }
-packages = ["neural_core", "visualization", "benchmarks"]
+package-dir = { "" = "src" }
+packages = [
+    "ai_lab",
+    "ai_lab.benchmarks",
+    "ai_lab.neural_core",
+    "ai_lab.visualization",
+]
 
 [tool.ruff]
 line-length = 100

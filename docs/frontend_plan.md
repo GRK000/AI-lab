@@ -2,6 +2,9 @@
 
 The frontend should visualize how the repository works internally, class by class.
 
+Initial implementation lives in `frontend/` and uses React, TypeScript, Tailwind and Vite.
+It includes responsive panels and interactive controls for each current module view.
+
 ## Goal
 
 Build an interactive teaching and portfolio interface where a reviewer can inspect:

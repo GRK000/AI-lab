@@ -30,6 +30,11 @@ artifacts/test-plots/
 artifacts/test-models/
 tmp*/
 
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
 # Jupyter
 .ipynb_checkpoints/
 
