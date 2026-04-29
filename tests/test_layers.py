@@ -3,7 +3,6 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-
 from _bootstrap import FROM_SCRATCH  # noqa: F401
 from neural_core.layers import DenseLayer, DropoutLayer
 

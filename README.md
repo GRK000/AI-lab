@@ -4,13 +4,30 @@ Este repositorio es mi laboratorio personal de inteligencia artificial y aprendi
 
 No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea un repositorio que demuestre criterio tecnico, progresion real y capacidad para disenar software entendible, escalable y honesto.
 
+## Snapshot
+
+Este proyecto demuestra que puedo traducir fundamentos de machine learning a software mantenible:
+
+- redes neuronales densas implementadas desde cero con NumPy
+- backpropagation vectorizado sobre multiples capas
+- optimizadores con estado: SGD, Momentum, RMSprop, Adadelta, Adam, AdamW y Adamax
+- regularizacion con dropout y L2
+- validacion durante entrenamiento y early stopping
+- persistencia de modelos con guardado/carga de arquitectura, pesos y clases
+- suite automatizada con 31 tests
+- empaquetado instalable con `pyproject.toml`
+- CI preparado con GitHub Actions
+- demos y graficos reproducibles en `artifacts/plots`
+
+La intencion no es sustituir PyTorch. La intencion es demostrar comprension profunda, criterio de diseno y disciplina de ingenieria.
+
 ## Vista rapida
 
 - Estado: funcional y testeado
-- Stack: Python, NumPy, matplotlib, unittest
+- Stack: Python, NumPy, matplotlib, unittest, setuptools
 - Enfoque: machine learning y redes neuronales desde cero
 - Objetivo: aprender fundamentos y construir una base de software mantenible
-- Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, visualizacion, ejemplos y comparaciones externas
+- Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, validacion, early stopping, persistencia, visualizacion, ejemplos y comparaciones externas
 
 ## Capacidades actuales
 
@@ -23,10 +40,14 @@ No quiero que este proyecto sea una coleccion de scripts sueltos. Quiero que sea
 | Red neuronal multicapa | Implementada con mini-batches, backpropagation y optimizadores configurables |
 | Activaciones | `identity`, `sigmoid`, `tanh`, `relu`, `softmax` |
 | Optimizadores | `sgd`, `momentum`, `rmsprop`, `adadelta`, `adam`, `adamw`, `adamax` |
+| Validacion | `validation_split`, `validation_data`, `val_loss`, `val_metric` |
+| Early stopping | Parada por falta de mejora con `patience`, `min_delta` y restauracion opcional |
+| Persistencia | `save()` y `NeuralNetwork.load()` para modelos entrenados |
 | Problemas soportados | Regresion, clasificacion binaria y multiclase |
 | Visualizacion | Historicos de entrenamiento, comparacion 2D y comparacion entre optimizadores |
 | Examples | Demo real sobre MNIST con red densa |
-| Tests | Suite automatizada activa |
+| Tests | Suite automatizada activa con 31 tests |
+| CI | Workflow de GitHub Actions para tests y lint |
 | Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
 
 ## Que estoy construyendo
@@ -50,7 +71,7 @@ Ahora mismo el repositorio ya tiene una base funcional y testeada:
 - Activaciones desacopladas con soporte para `identity`, `sigmoid`, `tanh`, `relu` y `softmax`.
 - Una clase `DenseLayer` para capas totalmente conectadas con forward y backward vectorizados.
 - Una clase `DropoutLayer` para regularizacion en capas ocultas.
-- Una clase `NeuralNetwork` con mini-batches, backpropagation, perdidas para regresion, binaria y multiclase, optimizadores configurables, y metodos `forward`, `predict`, `predict_proba` y `score`.
+- Una clase `NeuralNetwork` con mini-batches, backpropagation, perdidas para regresion, binaria y multiclase, optimizadores configurables, validacion, early stopping, persistencia, y metodos `forward`, `predict`, `predict_proba` y `score`.
 - Una clase `Neuron` como caso particular de una sola neurona diferenciable, reutilizando la infraestructura general.
 - Un modulo de optimizadores con soporte para `SGD`, `Momentum`, `RMSprop`, `Adadelta`, `Adam`, `AdamW` y `Adamax`.
 - Un script de demo con comparacion `Perceptron` vs `Neuron`, comparativa de optimizadores, una red multiclase con dropout y una red para XOR.
@@ -65,11 +86,19 @@ En el estado actual, la suite automatica del proyecto pasa completa con:
 python -m unittest discover -s tests -v
 ```
 
+Resultado actual:
+
+```text
+Ran 31 tests
+OK
+```
+
 ## Arranque rapido
 
 Si alguien entra al repositorio por primera vez, este es el recorrido mas corto para entenderlo:
 
 ```bash
+python -m pip install -e .
 python from-scratch/NeuralDemo.py
 python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
 python -m unittest discover -s tests -v
@@ -84,6 +113,21 @@ Con eso ya se puede ver:
 - una demo mas realista sobre MNIST
 - generacion automatica de graficos
 - validacion automatizada del nucleo
+
+## Instalacion como paquete
+
+El repositorio incluye `pyproject.toml`, asi que tambien puede instalarse en modo editable:
+
+```bash
+python -m pip install -e .
+```
+
+Para desarrollo local con lint:
+
+```bash
+python -m pip install -e ".[dev]"
+ruff check from-scratch tests examples comparisons
+```
 
 ## Requisitos
 
@@ -275,7 +319,7 @@ Si esas dependencias no estan instaladas, los scripts terminan con un mensaje cl
 Las decisiones que ya refleja el codigo son:
 
 - separacion entre implementaciones fundacionales y nucleo reutilizable
-- modulos pequenos con responsabilidad clara
+- modulos pequeños con responsabilidad clara
 - traduccion de conceptos matematicos a una API razonable
 - uso de NumPy de forma vectorizada cuando tiene sentido
 - una base preparada para crecer sin convertirse en una acumulacion de scripts
@@ -336,9 +380,9 @@ No quiero saltarme capas de comprension. Cuando uso PyTorch, quiero hacerlo con 
 
 No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, varias piezas importantes:
 
-- callbacks de entrenamiento mas completos
+- callbacks de entrenamiento mas completos mas alla de early stopping
 - regularizacion mas completa
-- guardado y carga de modelos
+- persistencia mas avanzada incluyendo estado del optimizador y metadatos de experimentos
 - una separacion aun mas formal entre libreria, demos y experimentos
 - benchmarks y comparativas mas exigentes
 - datasets algo mas representativos
@@ -356,7 +400,11 @@ No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, va
 - [x] Anadir visualizacion de entrenamiento
 - [x] Anadir tests automatizados del nucleo
 - [x] Preparar comparaciones base con frameworks externos
-- [ ] Incorporar persistencia de modelos
+- [x] Incorporar persistencia de modelos
+- [x] Incorporar validacion durante entrenamiento
+- [x] Incorporar early stopping
+- [x] Anadir empaquetado instalable con `pyproject.toml`
+- [x] Preparar CI con GitHub Actions
 - [ ] Introducir nuevas capas o abstracciones de capa adicionales
 - [ ] Anadir demos oficiales adicionales de regresion y multiclase
 - [ ] Mejorar comparativas y benchmarks
@@ -371,10 +419,8 @@ La evolucion natural del proyecto no es anadir clases sin criterio, sino ampliar
 Lo mas logico es seguir ampliando las clases que ya sostienen el proyecto:
 
 - regularizacion adicional
-- validacion durante entrenamiento
-- early stopping
-- callbacks simples
-- persistencia basica del modelo
+- callbacks adicionales
+- persistencia avanzada del modelo
 
 ### 2. Formalizar mejor la API
 
@@ -412,7 +458,7 @@ Si quiero subir el nivel del repositorio sin romper foco, los siguientes pasos m
 
 - ampliar tests numericos y de contrato
 - documentar mejor la API publica
-- anadir mas demos oficiales y datasets pequenos pero mas variados
+- anadir mas demos oficiales y datasets pequeños pero mas variados
 - enriquecer la carpeta `comparisons/`
 - limpiar estructura y nombres si el proyecto sigue creciendo
 

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 from neural_core import DenseLayer, DropoutLayer, NeuralNetwork, Neuron
 from perceptron import Perceptron
 from visualization import (
@@ -12,7 +11,6 @@ from visualization import (
     plot_optimizer_histories,
     plot_training_history,
 )
-
 
 PLOTS_DIR = Path("artifacts/plots")
 

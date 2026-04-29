@@ -66,6 +66,13 @@ class DenseLayer:
         self.bias_ = np.zeros((1, self.units), dtype=dtype)
         return self.units
 
+    def get_config(self) -> dict[str, Any]:
+        return {
+            "type": "DenseLayer",
+            "units": self.units,
+            "activation": self.activation,
+        }
+
     def forward(self, inputs: FloatArray, training: bool = False) -> FloatArray:
         linear_output = inputs @ self.weights + self.bias
         activated_output = ACTIVATIONS[self.activation].forward(linear_output).astype(
@@ -162,6 +169,12 @@ class DropoutLayer:
         self.dtype_ = dtype
         self._rng = rng
         return input_dim
+
+    def get_config(self) -> dict[str, Any]:
+        return {
+            "type": "DropoutLayer",
+            "rate": self.rate,
+        }
 
     def forward(self, inputs: FloatArray, training: bool = False) -> FloatArray:
         if self.input_dim_ is None or self._rng is None:

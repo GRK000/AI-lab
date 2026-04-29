@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -43,6 +45,11 @@ class NeuralNetwork:
         random_state: int | None = None,
         loss: LossName | None = None,
         dtype: Any = np.float32,
+        validation_split: float = 0.0,
+        early_stopping: bool = False,
+        patience: int = 10,
+        min_delta: float = 0.0,
+        restore_best_weights: bool = True,
     ) -> None:
         if not layers:
             raise ValueError("At least one layer is required.")
@@ -54,6 +61,12 @@ class NeuralNetwork:
             raise ValueError("batch_size must be > 0 or None.")
         if l2_lambda < 0.0:
             raise ValueError("l2_lambda must be >= 0.")
+        if not 0.0 <= validation_split < 1.0:
+            raise ValueError("validation_split must be in [0, 1).")
+        if patience <= 0:
+            raise ValueError("patience must be > 0.")
+        if min_delta < 0.0:
+            raise ValueError("min_delta must be >= 0.")
 
         self.layers = list(layers)
         self.problem_type = problem_type
@@ -66,6 +79,11 @@ class NeuralNetwork:
         self.l2_lambda = float(l2_lambda)
         self.random_state = random_state
         self.dtype = dtype
+        self.validation_split = float(validation_split)
+        self.early_stopping = bool(early_stopping)
+        self.patience = int(patience)
+        self.min_delta = float(min_delta)
+        self.restore_best_weights = bool(restore_best_weights)
 
         self.loss_name = loss or self._default_loss(problem_type)
         self.metric_name = "mae" if problem_type == "regression" else "accuracy"
@@ -84,12 +102,23 @@ class NeuralNetwork:
         )
         self._validate_architecture()
 
-    def fit(self, X: ArrayLike, y: ArrayLike) -> "NeuralNetwork":
+    def fit(
+        self,
+        X: ArrayLike,
+        y: ArrayLike,
+        *,
+        validation_data: tuple[ArrayLike, ArrayLike] | None = None,
+    ) -> NeuralNetwork:
         X_array = self._prepare_features(X)
         if self.problem_type != "regression":
             self.classes_ = None
         y_array = self._prepare_targets(y, fit=True)
         self._validate_sample_count(X_array, y_array)
+        X_array, y_array, X_val, y_val = self._split_validation_data(
+            X_array,
+            y_array,
+            validation_data,
+        )
         self._build_network(X_array.shape[1], reset=True)
         self._validate_output_configuration(y_array)
 
@@ -102,6 +131,9 @@ class NeuralNetwork:
             self.batch_size,
             n_samples,
         )
+        best_loss = float("inf")
+        best_parameters: list[dict[str, FloatArray]] | None = None
+        epochs_without_improvement = 0
 
         for epoch in range(1, self.max_epochs + 1):
             if self.shuffle:
@@ -121,15 +153,127 @@ class NeuralNetwork:
                 self._train_on_batch(batch_y, predictions)
 
             epoch_predictions = self._forward(X_array, training=False)
+            train_loss = self._loss(epoch_predictions, y_array)
+            train_metric = self._metric(epoch_predictions, y_array)
+            val_loss = None
+            val_metric = None
+            monitored_loss = train_loss
+
+            if X_val is not None and y_val is not None:
+                validation_predictions = self._forward(X_val, training=False)
+                val_loss = self._loss(validation_predictions, y_val)
+                val_metric = self._metric(validation_predictions, y_val)
+                monitored_loss = val_loss
+
             snapshot = TrainingSnapshot(
                 epoch=epoch,
-                loss=self._loss(epoch_predictions, y_array),
-                metric=self._metric(epoch_predictions, y_array),
+                loss=train_loss,
+                metric=train_metric,
+                val_loss=val_loss,
+                val_metric=val_metric,
             )
             self.history_.append(snapshot)
             self.epochs_trained_ = epoch
 
+            if self.early_stopping:
+                if monitored_loss < best_loss - self.min_delta:
+                    best_loss = monitored_loss
+                    best_parameters = self._copy_trainable_parameters()
+                    epochs_without_improvement = 0
+                else:
+                    epochs_without_improvement += 1
+
+                if epochs_without_improvement >= self.patience:
+                    if self.restore_best_weights and best_parameters is not None:
+                        self._restore_trainable_parameters(best_parameters)
+                    break
+
         return self
+
+    def save(self, path: str | Path) -> None:
+        if self.n_features_in_ is None or self.n_outputs_ is None:
+            raise RuntimeError("Cannot save an unfitted model.")
+        if not isinstance(self.optimizer, str):
+            raise ValueError("Only models using a built-in optimizer name can be saved.")
+
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+
+        metadata = {
+            "layers": [self._layer_config(layer) for layer in self.layers],
+            "problem_type": self.problem_type,
+            "learning_rate": self.learning_rate,
+            "optimizer": self.optimizer,
+            "optimizer_kwargs": self.optimizer_kwargs,
+            "max_epochs": self.max_epochs,
+            "batch_size": self.batch_size,
+            "shuffle": self.shuffle,
+            "l2_lambda": self.l2_lambda,
+            "random_state": self.random_state,
+            "loss": self.loss_name,
+            "dtype": np.dtype(self.dtype).name,
+            "validation_split": self.validation_split,
+            "early_stopping": self.early_stopping,
+            "patience": self.patience,
+            "min_delta": self.min_delta,
+            "restore_best_weights": self.restore_best_weights,
+            "n_features_in": self.n_features_in_,
+            "n_outputs": self.n_outputs_,
+            "classes": None if self.classes_ is None else self.classes_.tolist(),
+        }
+
+        arrays: dict[str, FloatArray] = {}
+        for index, layer in enumerate(self.layers):
+            if isinstance(layer, DenseLayer):
+                arrays[f"layer_{index}_weights"] = layer.weights
+                arrays[f"layer_{index}_bias"] = layer.bias
+
+        np.savez_compressed(target, metadata=json.dumps(metadata), **arrays)
+
+    @classmethod
+    def load(cls, path: str | Path) -> NeuralNetwork:
+        with np.load(Path(path), allow_pickle=False) as data:
+            metadata = json.loads(str(data["metadata"]))
+            layers = [cls._layer_from_config(config) for config in metadata["layers"]]
+            model = cls(
+                layers=layers,
+                problem_type=metadata["problem_type"],
+                learning_rate=metadata["learning_rate"],
+                optimizer=metadata["optimizer"],
+                optimizer_kwargs=metadata["optimizer_kwargs"],
+                max_epochs=metadata["max_epochs"],
+                batch_size=metadata["batch_size"],
+                shuffle=metadata["shuffle"],
+                l2_lambda=metadata["l2_lambda"],
+                random_state=metadata["random_state"],
+                loss=metadata["loss"],
+                dtype=np.dtype(metadata["dtype"]).type,
+                validation_split=metadata["validation_split"],
+                early_stopping=metadata["early_stopping"],
+                patience=metadata["patience"],
+                min_delta=metadata["min_delta"],
+                restore_best_weights=metadata["restore_best_weights"],
+            )
+            model._build_network(int(metadata["n_features_in"]), reset=True)
+            model.n_outputs_ = int(metadata["n_outputs"])
+            model.classes_ = (
+                None
+                if metadata["classes"] is None
+                else np.asarray(metadata["classes"])
+            )
+
+            for index, layer in enumerate(model.layers):
+                if isinstance(layer, DenseLayer):
+                    layer.weights_ = np.asarray(
+                        data[f"layer_{index}_weights"],
+                        dtype=model.dtype,
+                    )
+                    layer.bias_ = np.asarray(
+                        data[f"layer_{index}_bias"],
+                        dtype=model.dtype,
+                    )
+
+        return model
 
     def forward(self, X: ArrayLike) -> FloatArray:
         X_array = self._prepare_features(X, validate_only=True)
@@ -316,6 +460,43 @@ class NeuralNetwork:
         if X.shape[0] != y.shape[0]:
             raise ValueError("X and y must contain the same number of samples.")
 
+    def _split_validation_data(
+        self,
+        X: FloatArray,
+        y: FloatArray,
+        validation_data: tuple[ArrayLike, ArrayLike] | None,
+    ) -> tuple[FloatArray, FloatArray, FloatArray | None, FloatArray | None]:
+        if validation_data is not None and self.validation_split > 0.0:
+            raise ValueError("Use either validation_data or validation_split, not both.")
+
+        if validation_data is not None:
+            X_val = self._prepare_features(validation_data[0])
+            y_val = self._prepare_targets(validation_data[1], fit=False)
+            self._validate_sample_count(X_val, y_val)
+            return X, y, X_val, y_val
+
+        if self.validation_split == 0.0:
+            return X, y, None, None
+
+        n_samples = X.shape[0]
+        validation_count = int(round(n_samples * self.validation_split))
+        if validation_count <= 0 or validation_count >= n_samples:
+            raise ValueError("validation_split leaves no data for training or validation.")
+
+        if self.shuffle:
+            indices = self._rng.permutation(n_samples)
+        else:
+            indices = np.arange(n_samples)
+
+        validation_indices = indices[:validation_count]
+        training_indices = indices[validation_count:]
+        return (
+            X[training_indices],
+            y[training_indices],
+            X[validation_indices],
+            y[validation_indices],
+        )
+
     def _build_network(self, input_dim: int, reset: bool) -> None:
         if not reset and self.n_features_in_ is not None:
             if self.n_features_in_ != input_dim:
@@ -426,3 +607,44 @@ class NeuralNetwork:
         if outputs.shape[1] == 1:
             return outputs.reshape(-1)
         return outputs
+
+    def _copy_trainable_parameters(self) -> list[dict[str, FloatArray]]:
+        parameters: list[dict[str, FloatArray]] = []
+        for layer in self.layers:
+            if isinstance(layer, DenseLayer):
+                parameters.append(
+                    {
+                        "weights": layer.weights.copy(),
+                        "bias": layer.bias.copy(),
+                    }
+                )
+        return parameters
+
+    def _restore_trainable_parameters(
+        self,
+        parameters: list[dict[str, FloatArray]],
+    ) -> None:
+        parameter_index = 0
+        for layer in self.layers:
+            if isinstance(layer, DenseLayer):
+                layer.weights_ = parameters[parameter_index]["weights"].copy()
+                layer.bias_ = parameters[parameter_index]["bias"].copy()
+                parameter_index += 1
+
+    @staticmethod
+    def _layer_config(layer: Layer) -> dict[str, Any]:
+        if hasattr(layer, "get_config"):
+            return layer.get_config()
+        raise TypeError(f"Layer {type(layer).__name__!r} is not serializable.")
+
+    @staticmethod
+    def _layer_from_config(config: dict[str, Any]) -> Layer:
+        layer_type = config["type"]
+        if layer_type == "DenseLayer":
+            return DenseLayer(
+                units=int(config["units"]),
+                activation=config["activation"],
+            )
+        if layer_type == "DropoutLayer":
+            return DropoutLayer(rate=float(config["rate"]))
+        raise ValueError(f"Unsupported layer type: {layer_type!r}.")

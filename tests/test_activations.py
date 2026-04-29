@@ -3,10 +3,9 @@ from __future__ import annotations
 import unittest
 
 import numpy as np
-from numpy.testing import assert_allclose
-
 from _bootstrap import FROM_SCRATCH  # noqa: F401
 from neural_core.activations import ACTIVATIONS
+from numpy.testing import assert_allclose
 
 
 class ActivationTests(unittest.TestCase):

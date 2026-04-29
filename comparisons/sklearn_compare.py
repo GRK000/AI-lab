@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 try:
-    from sklearn.linear_model import LogisticRegression, Perceptron as SkPerceptron
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.linear_model import Perceptron as SkPerceptron
     from sklearn.neural_network import MLPClassifier
 except ModuleNotFoundError as error:
     raise SystemExit(

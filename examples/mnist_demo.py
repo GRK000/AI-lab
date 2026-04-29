@@ -1,22 +1,20 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FROM_SCRATCH = REPO_ROOT / "from-scratch"
 if str(FROM_SCRATCH) not in sys.path:
     sys.path.insert(0, str(FROM_SCRATCH))
 
-from neural_core import DenseLayer, DropoutLayer, NeuralNetwork  
-from visualization import plot_training_history  
-
+from neural_core import DenseLayer, DropoutLayer, NeuralNetwork
+from visualization import plot_training_history
 
 PLOTS_DIR = REPO_ROOT / "artifacts" / "plots"
 
@@ -157,7 +155,10 @@ def print_summary(
 
     print("\n=== MNIST dense demo ===")
     print("Task: multiclass image classification")
-    print("Architecture:", " -> ".join(str(layer.units) for layer in model.layers if hasattr(layer, "units")))
+    architecture = " -> ".join(
+        str(layer.units) for layer in model.layers if hasattr(layer, "units")
+    )
+    print("Architecture:", architecture)
     print("Optimizer: adam")
     print("Train samples:", X_train.shape[0])
     print("Test samples:", X_test.shape[0])

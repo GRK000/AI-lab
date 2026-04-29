@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from pathlib import Path
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,8 +27,11 @@ def _history_series(history: list[Any], field: str) -> tuple[list[int], list[flo
 
     for snapshot in history:
         if hasattr(snapshot, field):
-            epochs.append(int(getattr(snapshot, "epoch")))
-            values.append(float(getattr(snapshot, field)))
+            value = getattr(snapshot, field)
+            if value is None:
+                continue
+            epochs.append(int(snapshot.epoch))
+            values.append(float(value))
 
     return epochs, values
 
@@ -54,6 +58,8 @@ def plot_training_history(
     for field, label in (
         ("loss", "Loss"),
         ("metric", "Metric"),
+        ("val_loss", "Validation loss"),
+        ("val_metric", "Validation metric"),
         ("accuracy", "Accuracy"),
         ("errors", "Errors"),
         ("mean_margin", "Mean margin"),

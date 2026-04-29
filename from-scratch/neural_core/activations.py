@@ -56,7 +56,8 @@ def _softmax(x: FloatArray) -> FloatArray:
 def _softmax_derivative(output: FloatArray, linear: FloatArray) -> FloatArray:
     del output, linear
     raise ValueError(
-        "softmax uses a coupled derivative. Use it only in the output layer with categorical_crossentropy."
+        "softmax uses a coupled derivative. Use it only in the output layer "
+        "with categorical_crossentropy."
     )
 
 

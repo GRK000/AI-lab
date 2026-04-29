@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-import sys
 
 import numpy as np
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FROM_SCRATCH = REPO_ROOT / "from-scratch"

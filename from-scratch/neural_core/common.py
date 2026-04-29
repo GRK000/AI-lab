@@ -7,7 +7,6 @@ from typing import Any, Literal, Protocol
 import numpy as np
 from numpy.typing import NDArray
 
-
 FloatArray = NDArray[np.floating[Any]]
 ProblemType = Literal["regression", "binary", "multiclass"]
 ActivationName = Literal["identity", "sigmoid", "tanh", "relu", "softmax"]
@@ -30,6 +29,8 @@ class TrainingSnapshot:
     epoch: int
     loss: float
     metric: float
+    val_loss: float | None = None
+    val_metric: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 
 import numpy as np
-
 from _bootstrap import FROM_SCRATCH  # noqa: F401
 from neural_core import DenseLayer, DropoutLayer, NeuralNetwork
 
@@ -172,6 +172,72 @@ class NeuralNetworkTests(unittest.TestCase):
         model.fit(X, y)
         with self.assertRaises(RuntimeError):
             model.predict_proba(X)
+
+    def test_validation_split_tracks_validation_metrics(self) -> None:
+        X = np.linspace(0.0, 1.0, 12, dtype=np.float32).reshape(-1, 1)
+        y = (2.0 * X.reshape(-1) + 1.0).astype(np.float32)
+
+        model = NeuralNetwork(
+            layers=[DenseLayer(1, "identity")],
+            problem_type="regression",
+            learning_rate=0.05,
+            max_epochs=5,
+            batch_size=4,
+            validation_split=0.25,
+            random_state=4,
+        )
+        model.fit(X, y)
+
+        self.assertIsNotNone(model.history_[-1].val_loss)
+        self.assertIsNotNone(model.history_[-1].val_metric)
+
+    def test_early_stopping_stops_when_monitored_loss_does_not_improve_enough(self) -> None:
+        X = np.array([[0.0], [1.0], [2.0], [3.0]], dtype=np.float32)
+        y = np.array([1.0, 3.0, 5.0, 7.0], dtype=np.float32)
+
+        model = NeuralNetwork(
+            layers=[DenseLayer(1, "identity")],
+            problem_type="regression",
+            learning_rate=0.01,
+            max_epochs=50,
+            batch_size=4,
+            early_stopping=True,
+            patience=2,
+            min_delta=1_000_000.0,
+            random_state=3,
+        )
+        model.fit(X, y)
+
+        self.assertEqual(model.epochs_trained_, 3)
+
+    def test_save_and_load_preserve_predictions(self) -> None:
+        X = np.array(
+            [
+                [0.0, 0.0],
+                [0.0, 1.0],
+                [1.0, 0.0],
+                [1.0, 1.0],
+            ],
+            dtype=np.float32,
+        )
+        y = np.array([0, 1, 1, 0])
+
+        model = NeuralNetwork(
+            layers=[DenseLayer(8, "tanh"), DenseLayer(1, "sigmoid")],
+            problem_type="binary",
+            learning_rate=0.2,
+            max_epochs=1000,
+            batch_size=4,
+            random_state=21,
+        )
+        model.fit(X, y)
+
+        path = Path("artifacts") / "test-models" / "xor_model.npz"
+        model.save(path)
+        loaded = NeuralNetwork.load(path)
+
+        np.testing.assert_array_equal(model.predict(X), loaded.predict(X))
+        np.testing.assert_allclose(model.predict_proba(X), loaded.predict_proba(X))
 
 
 if __name__ == "__main__":

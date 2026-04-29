@@ -7,7 +7,6 @@ from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-
 FloatArray = NDArray[np.floating[Any]]
 IntArray = NDArray[np.int8]
 
@@ -61,7 +60,7 @@ class Perceptron:
 
         self._rng = np.random.default_rng(random_state)
 
-    def fit(self, X: ArrayLike, y: ArrayLike) -> "Perceptron":
+    def fit(self, X: ArrayLike, y: ArrayLike) -> Perceptron:
         X_array = self._prepare_features(X)
         y_raw = self._prepare_targets(y)
         self._validate_sample_count(X_array, y_raw)
@@ -95,7 +94,7 @@ class Perceptron:
         X: ArrayLike,
         y: ArrayLike,
         classes: Iterable[Any] | None = None,
-    ) -> "Perceptron":
+    ) -> Perceptron:
         X_array = self._prepare_features(X)
         y_raw = self._prepare_targets(y)
         self._validate_sample_count(X_array, y_raw)
@@ -105,7 +104,8 @@ class Perceptron:
                 inferred = np.unique(y_raw)
                 if inferred.size != 2:
                     raise ValueError(
-                        "partial_fit needs both classes on first call or an explicit classes iterable."
+                        "partial_fit needs both classes on first call or an explicit "
+                        "classes iterable."
                     )
                 self.classes_ = inferred
             else:

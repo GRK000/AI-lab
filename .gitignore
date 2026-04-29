@@ -27,6 +27,8 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 artifacts/test-plots/
+artifacts/test-models/
+tmp*/
 
 # Jupyter
 .ipynb_checkpoints/

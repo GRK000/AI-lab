@@ -32,6 +32,11 @@ class Neuron(NeuralNetwork):
         random_state: int | None = None,
         loss: LossName | None = None,
         dtype: Any = np.float32,
+        validation_split: float = 0.0,
+        early_stopping: bool = False,
+        patience: int = 10,
+        min_delta: float = 0.0,
+        restore_best_weights: bool = True,
     ) -> None:
         if problem_type not in {"regression", "binary"}:
             raise ValueError("Neuron supports only regression or binary classification.")
@@ -53,6 +58,11 @@ class Neuron(NeuralNetwork):
             random_state=random_state,
             loss=loss,
             dtype=dtype,
+            validation_split=validation_split,
+            early_stopping=early_stopping,
+            patience=patience,
+            min_delta=min_delta,
+            restore_best_weights=restore_best_weights,
         )
 
     @property

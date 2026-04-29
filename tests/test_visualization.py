@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import unittest
-from pathlib import Path
 
 import numpy as np
-
-from _bootstrap import ROOT, FROM_SCRATCH  # noqa: F401
+from _bootstrap import FROM_SCRATCH, ROOT  # noqa: F401
 from neural_core import Neuron
 from perceptron import Perceptron
 from visualization import (

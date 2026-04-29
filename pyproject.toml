@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-lab-from-scratch"
+version = "0.1.0"
+description = "Neural-network fundamentals implemented from scratch with NumPy."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Gorka" }]
+dependencies = [
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4",
+]
+examples = [
+    "scikit-learn>=1.3",
+]
+mnist = [
+    "keras>=3.0",
+]
+compare = [
+    "scikit-learn>=1.3",
+    "torch>=2.0",
+]
+
+[tool.setuptools]
+package-dir = { neural_core = "from-scratch/neural_core", visualization = "from-scratch/visualization" }
+packages = ["neural_core", "visualization"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E402"]
