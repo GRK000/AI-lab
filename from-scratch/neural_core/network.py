@@ -17,7 +17,7 @@ from .common import (
     ProblemType,
     TrainingSnapshot,
 )
-from .layers import DenseLayer, DropoutLayer
+from .layers import BatchNormLayer, DenseLayer, DropoutLayer, FlattenLayer
 from .optimizers import BaseOptimizer, make_optimizer
 
 
@@ -50,6 +50,7 @@ class NeuralNetwork:
         patience: int = 10,
         min_delta: float = 0.0,
         restore_best_weights: bool = True,
+        callbacks: Sequence[Any] | None = None,
     ) -> None:
         if not layers:
             raise ValueError("At least one layer is required.")
@@ -84,6 +85,7 @@ class NeuralNetwork:
         self.patience = int(patience)
         self.min_delta = float(min_delta)
         self.restore_best_weights = bool(restore_best_weights)
+        self.callbacks = list(callbacks or [])
 
         self.loss_name = loss or self._default_loss(problem_type)
         self.metric_name = "mae" if problem_type == "regression" else "accuracy"
@@ -125,6 +127,8 @@ class NeuralNetwork:
         self.history_.clear()
         self.epochs_trained_ = 0
         self._optimizer.reset_state()
+        for callback in self.callbacks:
+            callback.on_train_begin(self)
 
         n_samples = X_array.shape[0]
         effective_batch_size = n_samples if self.batch_size is None else min(
@@ -174,6 +178,14 @@ class NeuralNetwork:
             )
             self.history_.append(snapshot)
             self.epochs_trained_ = epoch
+            logs = {
+                "epoch": epoch,
+                "loss": train_loss,
+                "metric": train_metric,
+                "val_loss": val_loss,
+                "val_metric": val_metric,
+                "learning_rate": self.learning_rate,
+            }
 
             if self.early_stopping:
                 if monitored_loss < best_loss - self.min_delta:
@@ -188,6 +200,11 @@ class NeuralNetwork:
                         self._restore_trainable_parameters(best_parameters)
                     break
 
+            if any(callback.on_epoch_end(self, logs) for callback in self.callbacks):
+                break
+
+        for callback in self.callbacks:
+            callback.on_train_end(self)
         return self
 
     def save(self, path: str | Path) -> None:
@@ -227,6 +244,12 @@ class NeuralNetwork:
             if isinstance(layer, DenseLayer):
                 arrays[f"layer_{index}_weights"] = layer.weights
                 arrays[f"layer_{index}_bias"] = layer.bias
+            if isinstance(layer, BatchNormLayer):
+                arrays[f"layer_{index}_gamma"] = layer.gamma
+                arrays[f"layer_{index}_beta"] = layer.beta
+                if layer.running_mean_ is not None and layer.running_var_ is not None:
+                    arrays[f"layer_{index}_running_mean"] = layer.running_mean_
+                    arrays[f"layer_{index}_running_var"] = layer.running_var_
 
         np.savez_compressed(target, metadata=json.dumps(metadata), **arrays)
 
@@ -270,6 +293,17 @@ class NeuralNetwork:
                     )
                     layer.bias_ = np.asarray(
                         data[f"layer_{index}_bias"],
+                        dtype=model.dtype,
+                    )
+                if isinstance(layer, BatchNormLayer):
+                    layer.gamma_ = np.asarray(data[f"layer_{index}_gamma"], dtype=model.dtype)
+                    layer.beta_ = np.asarray(data[f"layer_{index}_beta"], dtype=model.dtype)
+                    layer.running_mean_ = np.asarray(
+                        data[f"layer_{index}_running_mean"],
+                        dtype=model.dtype,
+                    )
+                    layer.running_var_ = np.asarray(
+                        data[f"layer_{index}_running_var"],
                         dtype=model.dtype,
                     )
 
@@ -337,7 +371,7 @@ class NeuralNetwork:
         for layer in self.layers[:-1]:
             if isinstance(layer, DropoutLayer):
                 continue
-            if layer.activation == "softmax":
+            if getattr(layer, "activation", None) == "softmax":
                 raise ValueError("softmax is only supported in the output layer.")
 
         if isinstance(self.layers[-1], DropoutLayer):
@@ -647,4 +681,11 @@ class NeuralNetwork:
             )
         if layer_type == "DropoutLayer":
             return DropoutLayer(rate=float(config["rate"]))
+        if layer_type == "FlattenLayer":
+            return FlattenLayer()
+        if layer_type == "BatchNormLayer":
+            return BatchNormLayer(
+                momentum=float(config["momentum"]),
+                epsilon=float(config["epsilon"]),
+            )
         raise ValueError(f"Unsupported layer type: {layer_type!r}.")

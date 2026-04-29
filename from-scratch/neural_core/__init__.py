@@ -1,4 +1,11 @@
 from .activations import ACTIVATIONS
+from .callbacks import (
+    BaseCallback,
+    EarlyStopping,
+    HistoryLogger,
+    LearningRateScheduler,
+    ModelCheckpoint,
+)
 from .common import (
     EPSILON,
     Activation,
@@ -11,7 +18,24 @@ from .common import (
     ProblemType,
     TrainingSnapshot,
 )
-from .layers import DenseLayer, DropoutLayer
+from .gradient_check import GradientCheckResult, check_dense_layer_gradients
+from .layers import (
+    BatchNormLayer,
+    Conv2DLayer,
+    DenseLayer,
+    DropoutLayer,
+    FlattenLayer,
+    MaxPool2DLayer,
+)
+from .metrics import (
+    ClassificationReport,
+    accuracy_score,
+    classification_report,
+    confusion_matrix,
+    mean_absolute_error,
+    precision_recall_f1,
+    r2_score,
+)
 from .network import NeuralNetwork
 from .neuron import Neuron
 from .optimizers import (
@@ -31,6 +55,10 @@ __all__ = [
     "EPSILON",
     "Activation",
     "ActivationName",
+    "BaseCallback",
+    "BatchNormLayer",
+    "ClassificationReport",
+    "Conv2DLayer",
     "AdadeltaOptimizer",
     "AdamaxOptimizer",
     "AdamOptimizer",
@@ -38,9 +66,16 @@ __all__ = [
     "BaseOptimizer",
     "DenseLayer",
     "DropoutLayer",
+    "EarlyStopping",
+    "FlattenLayer",
     "FloatArray",
+    "GradientCheckResult",
+    "HistoryLogger",
     "Layer",
+    "LearningRateScheduler",
     "LossName",
+    "MaxPool2DLayer",
+    "ModelCheckpoint",
     "MomentumOptimizer",
     "NeuralNetwork",
     "Neuron",
@@ -50,5 +85,12 @@ __all__ = [
     "RMSpropOptimizer",
     "SGDOptimizer",
     "TrainingSnapshot",
+    "accuracy_score",
+    "check_dense_layer_gradients",
+    "classification_report",
+    "confusion_matrix",
     "make_optimizer",
+    "mean_absolute_error",
+    "precision_recall_f1",
+    "r2_score",
 ]

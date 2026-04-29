@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 import numpy as np
@@ -37,6 +38,7 @@ class Neuron(NeuralNetwork):
         patience: int = 10,
         min_delta: float = 0.0,
         restore_best_weights: bool = True,
+        callbacks: Sequence[Any] | None = None,
     ) -> None:
         if problem_type not in {"regression", "binary"}:
             raise ValueError("Neuron supports only regression or binary classification.")
@@ -63,6 +65,7 @@ class Neuron(NeuralNetwork):
             patience=patience,
             min_delta=min_delta,
             restore_best_weights=restore_best_weights,
+            callbacks=callbacks,
         )
 
     @property

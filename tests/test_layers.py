@@ -4,7 +4,14 @@ import unittest
 
 import numpy as np
 from _bootstrap import FROM_SCRATCH  # noqa: F401
-from neural_core.layers import DenseLayer, DropoutLayer
+from neural_core.layers import (
+    BatchNormLayer,
+    Conv2DLayer,
+    DenseLayer,
+    DropoutLayer,
+    FlattenLayer,
+    MaxPool2DLayer,
+)
 
 
 class DenseLayerTests(unittest.TestCase):
@@ -108,6 +115,54 @@ class DropoutLayerTests(unittest.TestCase):
     def test_dropout_rate_must_be_in_valid_range(self) -> None:
         with self.assertRaises(ValueError):
             DropoutLayer(rate=1.0)
+
+
+class AdditionalLayerTests(unittest.TestCase):
+    def test_flatten_layer_restores_input_shape_on_backward(self) -> None:
+        layer = FlattenLayer()
+        layer.build(input_dim=12, rng=np.random.default_rng(0), dtype=np.float32)
+        X = np.ones((2, 3, 4), dtype=np.float32)
+        output = layer.forward(X, training=True)
+        grad_input = layer.backward(np.ones_like(output))
+
+        self.assertEqual(output.shape, (2, 12))
+        self.assertEqual(grad_input.shape, X.shape)
+
+    def test_batch_norm_layer_preserves_shape_and_updates_parameters(self) -> None:
+        layer = BatchNormLayer()
+        layer.build(input_dim=3, rng=np.random.default_rng(0), dtype=np.float32)
+        X = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0]], dtype=np.float32)
+        output = layer.forward(X, training=True)
+        previous_gamma = layer.gamma.copy()
+        upstream = np.array([[1.0, 0.5, 0.25], [0.0, 1.0, 2.0]], dtype=np.float32)
+        grad_input = layer.backward(upstream, learning_rate=0.1)
+
+        self.assertEqual(output.shape, X.shape)
+        self.assertEqual(grad_input.shape, X.shape)
+        self.assertFalse(np.allclose(previous_gamma, layer.gamma))
+
+    def test_conv2d_forward_returns_expected_shape(self) -> None:
+        layer = Conv2DLayer(filters=2, kernel_size=3, padding=1)
+        output_shape = layer.build(
+            input_shape=(5, 5, 1),
+            rng=np.random.default_rng(0),
+            dtype=np.float32,
+        )
+        X = np.ones((4, 5, 5, 1), dtype=np.float32)
+        output = layer.forward(X)
+
+        self.assertEqual(output_shape, (5, 5, 2))
+        self.assertEqual(output.shape, (4, 5, 5, 2))
+
+    def test_max_pool_2d_reduces_spatial_dimensions(self) -> None:
+        layer = MaxPool2DLayer(pool_size=2)
+        X = np.arange(16, dtype=np.float32).reshape(1, 4, 4, 1)
+        output = layer.forward(X)
+
+        np.testing.assert_array_equal(
+            output,
+            np.array([[[[5.0], [7.0]], [[13.0], [15.0]]]], dtype=np.float32),
+        )
 
 
 if __name__ == "__main__":

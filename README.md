@@ -14,7 +14,12 @@ Este proyecto demuestra que puedo traducir fundamentos de machine learning a sof
 - regularizacion con dropout y L2
 - validacion durante entrenamiento y early stopping
 - persistencia de modelos con guardado/carga de arquitectura, pesos y clases
-- suite automatizada con 31 tests
+- callbacks reutilizables para logging, checkpoints, learning rate scheduling y early stopping
+- metricas de evaluacion: accuracy, confusion matrix, precision, recall, F1, R2 y MAE
+- capas adicionales: flatten, batch normalization, convolucion 2D y max pooling 2D
+- gradient checking reutilizable para validar derivadas
+- benchmarks reproducibles y ejemplos con datasets clasicos
+- suite automatizada con tests
 - empaquetado instalable con `pyproject.toml`
 - CI preparado con GitHub Actions
 - demos y graficos reproducibles en `artifacts/plots`
@@ -37,16 +42,22 @@ La intencion no es sustituir PyTorch. La intencion es demostrar comprension prof
 | Neurona diferenciable | Implementada y probada |
 | Capas densas | Implementadas con forward y backward |
 | Dropout | Implementado como capa reutilizable |
+| Batch normalization | Implementada como capa reutilizable |
+| Capas CNN iniciales | `Conv2DLayer` y `MaxPool2DLayer` con forward NumPy |
 | Red neuronal multicapa | Implementada con mini-batches, backpropagation y optimizadores configurables |
 | Activaciones | `identity`, `sigmoid`, `tanh`, `relu`, `softmax` |
 | Optimizadores | `sgd`, `momentum`, `rmsprop`, `adadelta`, `adam`, `adamw`, `adamax` |
 | Validacion | `validation_split`, `validation_data`, `val_loss`, `val_metric` |
 | Early stopping | Parada por falta de mejora con `patience`, `min_delta` y restauracion opcional |
+| Callbacks | `EarlyStopping`, `ModelCheckpoint`, `LearningRateScheduler`, `HistoryLogger` |
 | Persistencia | `save()` y `NeuralNetwork.load()` para modelos entrenados |
+| Metricas | Accuracy, confusion matrix, precision, recall, F1, R2 y MAE |
+| Gradient checking | Utilidad reusable para comprobar gradientes de capas densas |
 | Problemas soportados | Regresion, clasificacion binaria y multiclase |
 | Visualizacion | Historicos de entrenamiento, comparacion 2D y comparacion entre optimizadores |
 | Examples | Demo real sobre MNIST con red densa |
-| Tests | Suite automatizada activa con 31 tests |
+| Benchmarks | Tabla reproducible con tareas sinteticas y comparacion opcional sklearn |
+| Tests | Suite automatizada activa |
 | CI | Workflow de GitHub Actions para tests y lint |
 | Comparaciones externas | Scripts base para `scikit-learn` y `PyTorch` |
 
@@ -89,7 +100,7 @@ python -m unittest discover -s tests -v
 Resultado actual:
 
 ```text
-Ran 31 tests
+Ran 42+ tests
 OK
 ```
 
@@ -101,6 +112,8 @@ Si alguien entra al repositorio por primera vez, este es el recorrido mas corto 
 python -m pip install -e .
 python from-scratch/NeuralDemo.py
 python examples/mnist_demo.py --train-size 12000 --test-size 2000 --epochs 12
+python examples/classic_datasets_demo.py
+python benchmarks/run_benchmarks.py
 python -m unittest discover -s tests -v
 ```
 
@@ -111,6 +124,8 @@ Con eso ya se puede ver:
 - una red multiclase con `DropoutLayer`
 - una red densa resolviendo XOR
 - una demo mas realista sobre MNIST
+- demos sobre Iris, Breast Cancer y Diabetes si `scikit-learn` esta instalado
+- una tabla de benchmarks reproducible
 - generacion automatica de graficos
 - validacion automatizada del nucleo
 
@@ -126,8 +141,33 @@ Para desarrollo local con lint:
 
 ```bash
 python -m pip install -e ".[dev]"
-ruff check from-scratch tests examples comparisons
+python -m ruff check from-scratch tests examples comparisons benchmarks
 ```
+
+Tambien hay un comando CLI para benchmarks:
+
+```bash
+ai-lab-benchmark
+```
+
+Si el directorio de scripts de Python no esta en `PATH`, usa:
+
+```bash
+python -m benchmarks.run_benchmarks
+```
+
+## Documentacion tecnica
+
+La carpeta `docs/` contiene notas cortas orientadas a explicar decisiones:
+
+- `docs/architecture.md`
+- `docs/backpropagation.md`
+- `docs/optimizers.md`
+- `docs/persistence.md`
+- `docs/benchmarks.md`
+- `docs/frontend_plan.md`
+
+Tambien hay un notebook de entrada en `notebooks/01_training_a_network_from_scratch.ipynb`.
 
 ## Requisitos
 
@@ -405,9 +445,14 @@ No intento esconder lo que todavia falta. Ahora mismo faltan, o estan verdes, va
 - [x] Incorporar early stopping
 - [x] Anadir empaquetado instalable con `pyproject.toml`
 - [x] Preparar CI con GitHub Actions
-- [ ] Introducir nuevas capas o abstracciones de capa adicionales
-- [ ] Anadir demos oficiales adicionales de regresion y multiclase
-- [ ] Mejorar comparativas y benchmarks
+- [x] Introducir nuevas capas o abstracciones de capa adicionales
+- [x] Anadir demos oficiales adicionales de regresion y multiclase
+- [x] Mejorar comparativas y benchmarks
+- [x] Anadir callbacks reutilizables
+- [x] Anadir metricas de evaluacion
+- [x] Anadir gradient checking
+- [x] Anadir documentacion tecnica corta
+- [x] Anadir notebook de entrada
 - [ ] Refinar la separacion entre libreria, demos y experimentos
 
 ## Hacia donde puede avanzar de forma logica
