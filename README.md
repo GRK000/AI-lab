@@ -34,6 +34,7 @@ La intencion no es sustituir PyTorch. La intencion es demostrar comprension prof
 - Enfoque: machine learning y redes neuronales desde cero
 - Objetivo: aprender fundamentos y construir una base de software mantenible
 - Cobertura actual: perceptron, neurona diferenciable, capas densas, dropout, red neuronal, optimizadores, validacion, early stopping, persistencia, visualizacion, ejemplos y comparaciones externas
+- Demo visual: https://grk000.github.io/AI-lab/
 
 ## Capacidades actuales
 
@@ -178,6 +179,8 @@ el funcionamiento interno de las clases principales del proyecto.
 
 Incluye navegacion por teclado, controles interactivos por modulo y
 visualizaciones responsive preparadas para GitHub Pages.
+
+Demo publicada: https://grk000.github.io/AI-lab/
 
 ```bash
 cd frontend
